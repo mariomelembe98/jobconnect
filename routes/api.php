@@ -4,13 +4,19 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Lookup\CategoryController;
 use App\Http\Controllers\Api\V1\Lookup\LocationController;
 use App\Http\Controllers\Api\V1\Lookup\SkillController;
+use App\Http\Controllers\Api\V1\Professional\DocumentController;
+use App\Http\Controllers\Api\V1\Professional\PortfolioController;
 use App\Http\Controllers\Api\V1\Professional\ProfileController as ProfessionalProfileController;
+use App\Http\Controllers\Api\V1\ProfessionalDirectoryController;
 use App\Http\Controllers\Api\V1\UserProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('skills', [SkillController::class, 'index']);
+    Route::get('professionals', [ProfessionalDirectoryController::class, 'index']);
+    Route::get('professionals/{professionalProfile}', [ProfessionalDirectoryController::class, 'show'])
+        ->missing(fn () => ProfessionalDirectoryController::missingResponse());
 
     Route::prefix('locations')->group(function (): void {
         Route::get('provinces', [LocationController::class, 'provinces']);
@@ -41,5 +47,12 @@ Route::prefix('v1')->group(function (): void {
         Route::post('categories', [ProfessionalProfileController::class, 'assignCategories']);
         Route::post('skills', [ProfessionalProfileController::class, 'assignSkills']);
         Route::patch('availability', [ProfessionalProfileController::class, 'updateAvailability']);
+        Route::get('portfolio', [PortfolioController::class, 'index']);
+        Route::post('portfolio', [PortfolioController::class, 'store']);
+        Route::delete('portfolio/{portfolioItem}', [PortfolioController::class, 'destroy']);
+        Route::get('verification', [DocumentController::class, 'verification']);
+        Route::get('documents', [DocumentController::class, 'index']);
+        Route::post('documents', [DocumentController::class, 'store']);
+        Route::get('documents/{document}', [DocumentController::class, 'show']);
     });
 });

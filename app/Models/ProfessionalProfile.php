@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
@@ -55,6 +56,16 @@ class ProfessionalProfile extends Model
             'professional_profile_id',
             'skill_id',
         )->withTimestamps();
+    }
+
+    public function portfolioItems(): HasMany
+    {
+        return $this->hasMany(ProfessionalPortfolioItem::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProfessionalDocument::class);
     }
 
     /**
