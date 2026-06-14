@@ -2,8 +2,13 @@
 
 namespace App\Http\Requests\Api\V1\ServiceRequests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Enums\ServiceRequestStatus;
+use App\Models\ServiceRequest;
+use App\Support\ApiResponse;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\JsonResponse;
 
 class StoreServiceRequestAttachmentRequest extends FormRequest
 {
@@ -12,18 +17,48 @@ class StoreServiceRequestAttachmentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        $serviceRequest = $this->route('serviceRequest');
+
+        return $this->user()?->hasRole('client') === true
+            && $serviceRequest instanceof ServiceRequest
+            && $serviceRequest->client_id === $this->user()?->id
+            && ! in_array($serviceRequest->status?->value, [
+                ServiceRequestStatus::Completed->value,
+                ServiceRequestStatus::Cancelled->value,
+            ], true);
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, array<int, mixed>>
      */
     public function rules(): array
     {
         return [
-            //
+            'files' => ['required', 'array', 'min:1', 'max:10'],
+            'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:20480'],
         ];
+    }
+
+    protected function failedAuthorization(): never
+    {
+        throw new HttpResponseException(
+            ApiResponse::error(
+                message: 'Acesso reservado ao proprietário.',
+                status: JsonResponse::HTTP_FORBIDDEN,
+            ),
+        );
+    }
+
+    protected function failedValidation(Validator $validator): never
+    {
+        throw new HttpResponseException(
+            ApiResponse::error(
+                message: 'Os dados fornecidos são inválidos.',
+                errors: $validator->errors()->toArray(),
+                status: JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
+            ),
+        );
     }
 }

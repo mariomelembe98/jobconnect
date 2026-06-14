@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Client\ServiceRequestController as ClientServiceRequestController;
 use App\Http\Controllers\Api\V1\Lookup\CategoryController;
 use App\Http\Controllers\Api\V1\Lookup\LocationController;
 use App\Http\Controllers\Api\V1\Lookup\SkillController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\Api\V1\Professional\DocumentController;
 use App\Http\Controllers\Api\V1\Professional\PortfolioController;
 use App\Http\Controllers\Api\V1\Professional\ProfileController as ProfessionalProfileController;
 use App\Http\Controllers\Api\V1\ProfessionalDirectoryController;
+use App\Http\Controllers\Api\V1\ServiceRequestController;
 use App\Http\Controllers\Api\V1\UserProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +41,18 @@ Route::prefix('v1')->group(function (): void {
         Route::patch('/', [UserProfileController::class, 'update']);
         Route::patch('location', [UserProfileController::class, 'updateLocation']);
         Route::patch('password', [UserProfileController::class, 'changePassword']);
+    });
+
+    Route::get('service-requests/{serviceRequest}', [ServiceRequestController::class, 'show']);
+
+    Route::middleware('auth:sanctum')->group(function (): void {
+        Route::get('service-requests', [ServiceRequestController::class, 'index']);
+        Route::post('service-requests', [ServiceRequestController::class, 'store']);
+        Route::patch('service-requests/{serviceRequest}', [ServiceRequestController::class, 'update']);
+        Route::post('service-requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel']);
+        Route::post('service-requests/{serviceRequest}/attachments', [ServiceRequestController::class, 'storeAttachments']);
+        Route::delete('service-requests/{serviceRequest}/attachments/{attachment}', [ServiceRequestController::class, 'destroyAttachment']);
+        Route::get('client/service-requests', [ClientServiceRequestController::class, 'index']);
     });
 
     Route::middleware('auth:sanctum')->prefix('admin')->group(function (): void {

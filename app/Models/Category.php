@@ -28,4 +28,9 @@ class Category extends Model
             'professional_profile_id',
         )->withTimestamps();
     }
+
+    public function serviceRequests(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class);
+    }
 }

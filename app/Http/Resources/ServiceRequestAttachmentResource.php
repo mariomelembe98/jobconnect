@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ServiceRequestAttachmentResource extends JsonResource
 {
@@ -14,6 +15,16 @@ class ServiceRequestAttachmentResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'service_request_id' => $this->service_request_id,
+            'file_path' => $this->file_path,
+            'file_url' => $this->file_path ? Storage::disk('public')->url($this->file_path) : null,
+            'file_name' => $this->file_name,
+            'file_type' => $this->file_type,
+            'file_size' => $this->file_size,
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
+        ];
     }
 }

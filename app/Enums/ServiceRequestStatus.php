@@ -5,7 +5,8 @@ namespace App\Enums;
 enum ServiceRequestStatus: string
 {
     case Draft = 'draft';
-    case Open = 'open';
+    case Published = 'published';
+    case ReceivingProposals = 'receiving_proposals';
     case InProgress = 'in_progress';
     case Completed = 'completed';
     case Cancelled = 'cancelled';
@@ -14,7 +15,8 @@ enum ServiceRequestStatus: string
     {
         return match ($this) {
             self::Draft => 'Rascunho',
-            self::Open => 'Aberto',
+            self::Published => 'Publicado',
+            self::ReceivingProposals => 'A receber propostas',
             self::InProgress => 'Em progresso',
             self::Completed => 'Concluído',
             self::Cancelled => 'Cancelado',
