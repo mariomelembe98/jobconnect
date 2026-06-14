@@ -83,9 +83,9 @@ test('can filter by city', function () {
         ->assertJsonPath('data.professionals.0.city', 'Matola');
 });
 
-test('can filter verified professionals', function () {
-    $verifiedProfile = publicProfessionalProfile(profileOverrides: [
-        'verification_status' => VerificationStatus::Verified,
+test('can filter approved professionals', function () {
+    $approvedProfile = publicProfessionalProfile(profileOverrides: [
+        'verification_status' => VerificationStatus::Approved,
     ]);
     publicProfessionalProfile(profileOverrides: [
         'verification_status' => VerificationStatus::Pending,
@@ -96,8 +96,8 @@ test('can filter verified professionals', function () {
     $response
         ->assertSuccessful()
         ->assertJsonCount(1, 'data.professionals')
-        ->assertJsonPath('data.professionals.0.id', $verifiedProfile->id)
-        ->assertJsonPath('data.professionals.0.verification_status', 'verified');
+        ->assertJsonPath('data.professionals.0.id', $approvedProfile->id)
+        ->assertJsonPath('data.professionals.0.verification_status', 'approved');
 });
 
 test('can show professional details', function () {

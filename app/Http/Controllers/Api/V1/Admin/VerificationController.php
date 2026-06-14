@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
-use App\Enums\UserStatus;
 use App\Enums\VerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Admin\ApproveVerificationRequest;
@@ -10,7 +9,6 @@ use App\Http\Requests\Api\V1\Admin\RejectVerificationRequest;
 use App\Http\Resources\AdminVerificationResource;
 use App\Models\ProfessionalProfile;
 use App\Support\ApiResponse;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,12 +22,11 @@ class VerificationController extends Controller
         }
 
         $query = ProfessionalProfile::query()
-            ->with(['user', 'documents.reviewer'])
-            ->whereHas('user', fn (Builder $query) => $query->where('status', UserStatus::Active->value));
+            ->with(['user', 'documents.reviewer']);
 
         $status = $request->string('status')->toString();
 
-        if ($status !== '' && in_array($status, VerificationStatus::values(), true)) {
+        if ($status !== '' && in_array($status, $this->filterableStatuses(), true)) {
             $query->where('verification_status', $status);
         }
 
@@ -68,8 +65,9 @@ class VerificationController extends Controller
     public function approve(ApproveVerificationRequest $request, ProfessionalProfile $professionalProfile): JsonResponse
     {
         $admin = $request->user();
+        $reviewedAt = now();
 
-        DB::transaction(function () use ($admin, $professionalProfile): void {
+        DB::transaction(function () use ($admin, $professionalProfile, $reviewedAt): void {
             $professionalProfile->update([
                 'verification_status' => VerificationStatus::Approved,
             ]);
@@ -79,7 +77,7 @@ class VerificationController extends Controller
                 ->update([
                     'status' => VerificationStatus::Approved->value,
                     'reviewed_by' => $admin?->id,
-                    'reviewed_at' => now(),
+                    'reviewed_at' => $reviewedAt,
                     'rejection_reason' => null,
                 ]);
         });
@@ -98,8 +96,9 @@ class VerificationController extends Controller
     {
         $admin = $request->user();
         $reason = $request->validated('reason');
+        $reviewedAt = now();
 
-        DB::transaction(function () use ($admin, $professionalProfile, $reason): void {
+        DB::transaction(function () use ($admin, $professionalProfile, $reason, $reviewedAt): void {
             $professionalProfile->update([
                 'verification_status' => VerificationStatus::Rejected,
             ]);
@@ -109,7 +108,7 @@ class VerificationController extends Controller
                 ->update([
                     'status' => VerificationStatus::Rejected->value,
                     'reviewed_by' => $admin?->id,
-                    'reviewed_at' => now(),
+                    'reviewed_at' => $reviewedAt,
                     'rejection_reason' => $reason,
                 ]);
         });
@@ -140,6 +139,19 @@ class VerificationController extends Controller
             message: 'Acesso reservado a administradores.',
             status: JsonResponse::HTTP_FORBIDDEN,
         );
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function filterableStatuses(): array
+    {
+        return [
+            VerificationStatus::Pending->value,
+            VerificationStatus::Approved->value,
+            VerificationStatus::Rejected->value,
+            VerificationStatus::UnderReview->value,
+        ];
     }
 
     private static function notFoundResponse(): JsonResponse

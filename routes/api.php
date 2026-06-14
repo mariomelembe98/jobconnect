@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Lookup\CategoryController;
 use App\Http\Controllers\Api\V1\Lookup\LocationController;
@@ -38,6 +39,16 @@ Route::prefix('v1')->group(function (): void {
         Route::patch('/', [UserProfileController::class, 'update']);
         Route::patch('location', [UserProfileController::class, 'updateLocation']);
         Route::patch('password', [UserProfileController::class, 'changePassword']);
+    });
+
+    Route::middleware('auth:sanctum')->prefix('admin')->group(function (): void {
+        Route::get('verifications', [AdminVerificationController::class, 'index']);
+        Route::get('verifications/{professionalProfile}', [AdminVerificationController::class, 'show'])
+            ->missing(fn () => AdminVerificationController::missingResponse());
+        Route::post('verifications/{professionalProfile}/approve', [AdminVerificationController::class, 'approve'])
+            ->missing(fn () => AdminVerificationController::missingResponse());
+        Route::post('verifications/{professionalProfile}/reject', [AdminVerificationController::class, 'reject'])
+            ->missing(fn () => AdminVerificationController::missingResponse());
     });
 
     Route::middleware('auth:sanctum')->prefix('professional')->group(function (): void {
