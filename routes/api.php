@@ -4,10 +4,12 @@ use App\Http\Controllers\Api\V1\Admin\VerificationController as AdminVerificatio
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Client\ServiceRequestController as ClientServiceRequestController;
 use App\Http\Controllers\Api\V1\ContractController;
+use App\Http\Controllers\Api\V1\ConversationController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Lookup\CategoryController;
 use App\Http\Controllers\Api\V1\Lookup\LocationController;
 use App\Http\Controllers\Api\V1\Lookup\SkillController;
+use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\Professional\DocumentController;
 use App\Http\Controllers\Api\V1\Professional\PortfolioController;
 use App\Http\Controllers\Api\V1\Professional\ProfileController as ProfessionalProfileController;
@@ -65,6 +67,13 @@ Route::prefix('v1')->group(function (): void {
         Route::post('proposals/{proposal}/reject', [ProposalController::class, 'reject']);
         Route::get('professional/proposals', [ProposalController::class, 'professionalIndex']);
         Route::get('service-requests/{serviceRequest}/proposals', [ProposalController::class, 'serviceRequestIndex']);
+        Route::get('conversations', [ConversationController::class, 'index']);
+        Route::get('conversations/{conversation}', [ConversationController::class, 'show']);
+        Route::post('conversations/{conversation}/archive', [ConversationController::class, 'archive']);
+        Route::get('conversations/{conversation}/messages', [ConversationController::class, 'messages']);
+        Route::post('conversations/{conversation}/messages', [ConversationController::class, 'storeMessage']);
+        Route::post('conversations/{conversation}/read', [ConversationController::class, 'read']);
+        Route::post('messages/{message}/attachments', [MessageController::class, 'storeAttachment']);
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::post('favorites', [FavoriteController::class, 'store']);
         Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);

@@ -75,6 +75,16 @@ class User extends Authenticatable
         return $this->hasMany(Contract::class, 'client_id');
     }
 
+    public function conversationsAsClient(): HasMany
+    {
+        return $this->hasMany(Conversation::class, 'client_id');
+    }
+
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *

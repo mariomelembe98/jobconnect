@@ -58,6 +58,11 @@ class ServiceRequest extends Model
         return $this->hasMany(ProfessionalInvitation::class);
     }
 
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
     public function contract(): HasOne
     {
         return $this->hasOne(Contract::class);

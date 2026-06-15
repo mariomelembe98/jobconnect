@@ -3,15 +3,18 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\ContractStatus;
+use App\Enums\ConversationStatus;
 use App\Enums\ProposalStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Proposals\StoreProposalRequest;
 use App\Http\Resources\ContractResource;
+use App\Http\Resources\ConversationResource;
 use App\Http\Resources\ProposalListResource;
 use App\Http\Resources\ProposalResource;
 use App\Models\Contract;
 use App\Models\ContractStatusLog;
+use App\Models\Conversation;
 use App\Models\Proposal as ProposalModel;
 use App\Models\ServiceRequest as ServiceRequestModel;
 use App\Support\ApiResponse;
@@ -173,8 +176,9 @@ class ProposalController extends Controller
         }
 
         $contract = null;
+        $conversation = null;
 
-        DB::transaction(function () use ($proposal, $serviceRequest, $request, &$contract): void {
+        DB::transaction(function () use ($proposal, $serviceRequest, $request, &$contract, &$conversation): void {
             $now = now();
 
             $proposal->update([
@@ -216,6 +220,14 @@ class ProposalController extends Controller
                 'changed_by' => $request->user()?->id,
                 'note' => 'Contrato criado a partir da proposta aceite.',
             ]);
+
+            $conversation = Conversation::create([
+                'service_request_id' => $serviceRequest->id,
+                'contract_id' => $contract->id,
+                'client_id' => $serviceRequest->client_id,
+                'professional_profile_id' => $proposal->professional_profile_id,
+                'status' => ConversationStatus::Active,
+            ]);
         });
 
         return ApiResponse::success(
@@ -223,6 +235,9 @@ class ProposalController extends Controller
                 'proposal' => new ProposalResource($proposal->refresh()->load(['serviceRequest.category', 'professionalProfile.user'])),
                 'contract' => new ContractResource(
                     $contract->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'statusLogs.changedBy']),
+                ),
+                'conversation' => new ConversationResource(
+                    $conversation->load(['serviceRequest.category', 'contract', 'client', 'professionalProfile.user'])->loadCount('messages'),
                 ),
             ],
             message: 'Proposta aceite com sucesso.',

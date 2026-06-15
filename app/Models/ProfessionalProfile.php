@@ -93,6 +93,11 @@ class ProfessionalProfile extends Model
         return $this->hasMany(Contract::class);
     }
 
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
+
     /**
      * @return array<string, string>
      */
