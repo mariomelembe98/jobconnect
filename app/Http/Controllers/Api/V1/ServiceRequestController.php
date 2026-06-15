@@ -2,15 +2,21 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\InvitationStatus;
 use App\Enums\ServiceRequestStatus;
+use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\ProfessionalInvitations\InviteProfessionalRequest;
 use App\Http\Requests\Api\V1\ServiceRequests\CancelServiceRequestRequest;
 use App\Http\Requests\Api\V1\ServiceRequests\StoreServiceRequestAttachmentRequest;
 use App\Http\Requests\Api\V1\ServiceRequests\StoreServiceRequestRequest;
 use App\Http\Requests\Api\V1\ServiceRequests\UpdateServiceRequestRequest;
+use App\Http\Resources\InvitationResource;
 use App\Http\Resources\ServiceRequestAttachmentResource;
 use App\Http\Resources\ServiceRequestListResource;
 use App\Http\Resources\ServiceRequestResource;
+use App\Models\ProfessionalInvitation;
+use App\Models\ProfessionalProfile;
 use App\Models\ServiceRequest as ServiceRequestModel;
 use App\Models\ServiceRequestAttachment as ServiceRequestAttachmentModel;
 use App\Support\ApiResponse;
@@ -193,6 +199,61 @@ class ServiceRequestController extends Controller
         );
     }
 
+    public function invite(InviteProfessionalRequest $request, ServiceRequestModel $serviceRequest): JsonResponse
+    {
+        if (! $this->isClientOwner($request, $serviceRequest)) {
+            return $this->ownerOnlyResponse();
+        }
+
+        if (in_array($serviceRequest->status?->value, [
+            ServiceRequestStatus::Completed->value,
+            ServiceRequestStatus::Cancelled->value,
+        ], true)) {
+            return $this->conflictResponse('Não pode convidar profissionais neste pedido no estado actual.');
+        }
+
+        $validated = $request->validated();
+
+        $professionalProfile = ProfessionalProfile::query()
+            ->with('user')
+            ->findOrFail($validated['professional_profile_id']);
+
+        if ($professionalProfile->user_id === $request->user()?->id) {
+            return $this->conflictResponse('Não pode convidar o seu próprio perfil profissional.');
+        }
+
+        if ($professionalProfile->user?->status?->value !== UserStatus::Active->value) {
+            return $this->conflictResponse('Não pode convidar um profissional inactivo.');
+        }
+
+        $alreadyInvited = ProfessionalInvitation::query()
+            ->where('service_request_id', $serviceRequest->id)
+            ->where('professional_profile_id', $professionalProfile->id)
+            ->exists();
+
+        if ($alreadyInvited) {
+            return $this->conflictResponse('Este profissional já foi convidado para este pedido.');
+        }
+
+        $invitation = ProfessionalInvitation::create([
+            'service_request_id' => $serviceRequest->id,
+            'professional_profile_id' => $professionalProfile->id,
+            'client_id' => $request->user()->id,
+            'message' => $validated['message'] ?? null,
+            'status' => InvitationStatus::Pending,
+        ]);
+
+        return ApiResponse::success(
+            data: [
+                'invitation' => new InvitationResource(
+                    $invitation->fresh()->load(['serviceRequest', 'professionalProfile.user', 'client']),
+                ),
+            ],
+            message: 'Convite enviado com sucesso.',
+            status: JsonResponse::HTTP_CREATED,
+        );
+    }
+
     private function applyPublicFilters(Builder $query, Request $request): void
     {
         $query->whereIn('status', [
@@ -288,6 +349,12 @@ class ServiceRequestController extends Controller
         ], true);
     }
 
+    private function isClientOwner(Request $request, ServiceRequestModel $serviceRequest): bool
+    {
+        return $request->user()?->hasRole('client') === true
+            && $serviceRequest->client_id === $request->user()?->id;
+    }
+
     private function isProfessionalViewer(Request $request): bool
     {
         return $request->user()?->hasRole('professional') === true;
@@ -302,6 +369,14 @@ class ServiceRequestController extends Controller
     {
         return ApiResponse::error(
             message: 'Acesso reservado a profissionais e administradores.',
+            status: JsonResponse::HTTP_FORBIDDEN,
+        );
+    }
+
+    private function ownerOnlyResponse(): JsonResponse
+    {
+        return ApiResponse::error(
+            message: 'Acesso reservado ao proprietário do pedido.',
             status: JsonResponse::HTTP_FORBIDDEN,
         );
     }

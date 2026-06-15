@@ -47,6 +47,16 @@ class ServiceRequest extends Model
         return $this->hasMany(ServiceRequestAttachment::class);
     }
 
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(Proposal::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(ProfessionalInvitation::class);
+    }
+
     /**
      * @return array<string, string>
      */

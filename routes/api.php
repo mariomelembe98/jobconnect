@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Client\ServiceRequestController as ClientServiceRequestController;
+use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Lookup\CategoryController;
 use App\Http\Controllers\Api\V1\Lookup\LocationController;
 use App\Http\Controllers\Api\V1\Lookup\SkillController;
@@ -10,6 +11,8 @@ use App\Http\Controllers\Api\V1\Professional\DocumentController;
 use App\Http\Controllers\Api\V1\Professional\PortfolioController;
 use App\Http\Controllers\Api\V1\Professional\ProfileController as ProfessionalProfileController;
 use App\Http\Controllers\Api\V1\ProfessionalDirectoryController;
+use App\Http\Controllers\Api\V1\ProfessionalInvitationController;
+use App\Http\Controllers\Api\V1\ProposalController;
 use App\Http\Controllers\Api\V1\ServiceRequestController;
 use App\Http\Controllers\Api\V1\UserProfileController;
 use Illuminate\Support\Facades\Route;
@@ -52,7 +55,18 @@ Route::prefix('v1')->group(function (): void {
         Route::post('service-requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel']);
         Route::post('service-requests/{serviceRequest}/attachments', [ServiceRequestController::class, 'storeAttachments']);
         Route::delete('service-requests/{serviceRequest}/attachments/{attachment}', [ServiceRequestController::class, 'destroyAttachment']);
+        Route::post('service-requests/{serviceRequest}/invite', [ServiceRequestController::class, 'invite']);
         Route::get('client/service-requests', [ClientServiceRequestController::class, 'index']);
+        Route::post('proposals', [ProposalController::class, 'store']);
+        Route::get('proposals/{proposal}', [ProposalController::class, 'show']);
+        Route::post('proposals/{proposal}/withdraw', [ProposalController::class, 'withdraw']);
+        Route::post('proposals/{proposal}/accept', [ProposalController::class, 'accept']);
+        Route::post('proposals/{proposal}/reject', [ProposalController::class, 'reject']);
+        Route::get('professional/proposals', [ProposalController::class, 'professionalIndex']);
+        Route::get('service-requests/{serviceRequest}/proposals', [ProposalController::class, 'serviceRequestIndex']);
+        Route::get('favorites', [FavoriteController::class, 'index']);
+        Route::post('favorites', [FavoriteController::class, 'store']);
+        Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
     });
 
     Route::middleware('auth:sanctum')->prefix('admin')->group(function (): void {
@@ -72,6 +86,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('categories', [ProfessionalProfileController::class, 'assignCategories']);
         Route::post('skills', [ProfessionalProfileController::class, 'assignSkills']);
         Route::patch('availability', [ProfessionalProfileController::class, 'updateAvailability']);
+        Route::get('invitations', [ProfessionalInvitationController::class, 'index']);
+        Route::post('invitations/{invitation}/decline', [ProfessionalInvitationController::class, 'decline']);
         Route::get('portfolio', [PortfolioController::class, 'index']);
         Route::post('portfolio', [PortfolioController::class, 'store']);
         Route::delete('portfolio/{portfolioItem}', [PortfolioController::class, 'destroy']);

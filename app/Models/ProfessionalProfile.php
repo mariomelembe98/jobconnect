@@ -68,6 +68,26 @@ class ProfessionalProfile extends Model
         return $this->hasMany(ProfessionalDocument::class);
     }
 
+    public function favoritedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'favorites',
+            'professional_profile_id',
+            'user_id',
+        )->withTimestamps();
+    }
+
+    public function proposals(): HasMany
+    {
+        return $this->hasMany(Proposal::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(ProfessionalInvitation::class);
+    }
+
     /**
      * @return array<string, string>
      */
