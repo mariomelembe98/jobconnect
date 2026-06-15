@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Client\ServiceRequestController as ClientServiceRequestController;
+use App\Http\Controllers\Api\V1\ContractController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Lookup\CategoryController;
 use App\Http\Controllers\Api\V1\Lookup\LocationController;
@@ -67,6 +68,11 @@ Route::prefix('v1')->group(function (): void {
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::post('favorites', [FavoriteController::class, 'store']);
         Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
+        Route::get('contracts', [ContractController::class, 'index']);
+        Route::get('contracts/{contract}', [ContractController::class, 'show']);
+        Route::post('contracts/{contract}/complete', [ContractController::class, 'complete']);
+        Route::post('contracts/{contract}/cancel', [ContractController::class, 'cancel']);
+        Route::get('contracts/{contract}/logs', [ContractController::class, 'logs']);
     });
 
     Route::middleware('auth:sanctum')->prefix('admin')->group(function (): void {

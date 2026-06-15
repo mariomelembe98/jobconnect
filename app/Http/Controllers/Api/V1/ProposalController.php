@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\ContractStatus;
 use App\Enums\ProposalStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Proposals\StoreProposalRequest;
+use App\Http\Resources\ContractResource;
 use App\Http\Resources\ProposalListResource;
 use App\Http\Resources\ProposalResource;
+use App\Models\Contract;
+use App\Models\ContractStatusLog;
 use App\Models\Proposal as ProposalModel;
 use App\Models\ServiceRequest as ServiceRequestModel;
 use App\Support\ApiResponse;
@@ -168,7 +172,9 @@ class ProposalController extends Controller
             return $this->conflictResponse('Só é possível aceitar uma proposta pendente.');
         }
 
-        DB::transaction(function () use ($proposal, $serviceRequest): void {
+        $contract = null;
+
+        DB::transaction(function () use ($proposal, $serviceRequest, $request, &$contract): void {
             $now = now();
 
             $proposal->update([
@@ -191,12 +197,33 @@ class ProposalController extends Controller
                 'status' => ServiceRequestStatus::InProgress,
             ]);
 
-            // TODO: Sprint 4 - create the Contract and Conversation records here.
+            $contract = Contract::create([
+                'service_request_id' => $serviceRequest->id,
+                'proposal_id' => $proposal->id,
+                'client_id' => $serviceRequest->client_id,
+                'professional_profile_id' => $proposal->professional_profile_id,
+                'amount' => $proposal->amount,
+                'platform_fee' => round(((float) $proposal->amount) * 0.1, 2),
+                'professional_amount' => round(((float) $proposal->amount) * 0.9, 2),
+                'status' => ContractStatus::Active,
+                'started_at' => $now,
+            ]);
+
+            ContractStatusLog::create([
+                'contract_id' => $contract->id,
+                'old_status' => null,
+                'new_status' => ContractStatus::Active->value,
+                'changed_by' => $request->user()?->id,
+                'note' => 'Contrato criado a partir da proposta aceite.',
+            ]);
         });
 
         return ApiResponse::success(
             data: [
                 'proposal' => new ProposalResource($proposal->refresh()->load(['serviceRequest.category', 'professionalProfile.user'])),
+                'contract' => new ContractResource(
+                    $contract->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'statusLogs.changedBy']),
+                ),
             ],
             message: 'Proposta aceite com sucesso.',
         );

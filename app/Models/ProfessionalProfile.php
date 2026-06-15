@@ -88,6 +88,11 @@ class ProfessionalProfile extends Model
         return $this->hasMany(ProfessionalInvitation::class);
     }
 
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(Contract::class);
+    }
+
     /**
      * @return array<string, string>
      */

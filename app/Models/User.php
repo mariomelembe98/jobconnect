@@ -70,6 +70,11 @@ class User extends Authenticatable
         return $this->hasMany(ProfessionalInvitation::class, 'client_id');
     }
 
+    public function clientContracts(): HasMany
+    {
+        return $this->hasMany(Contract::class, 'client_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *
