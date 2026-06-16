@@ -7,7 +7,9 @@ use App\Enums\VerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProfessionalListResource;
 use App\Http\Resources\ProfessionalPublicResource;
+use App\Http\Resources\ReviewResource;
 use App\Models\ProfessionalProfile;
+use App\Models\Review;
 use App\Support\ApiResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -81,6 +83,35 @@ class ProfessionalDirectoryController extends Controller
                 'professional' => new ProfessionalPublicResource($professionalProfile),
             ],
             message: 'Profissional carregado com sucesso.',
+        );
+    }
+
+    public function reviews(Request $request, ProfessionalProfile $professionalProfile): JsonResponse
+    {
+        $professionalProfile->load('user');
+
+        if ($professionalProfile->user?->status !== UserStatus::Active) {
+            return $this->notFoundResponse();
+        }
+
+        $reviews = Review::query()
+            ->with(['reviewer', 'reviewed', 'contract'])
+            ->where('reviewed_id', $professionalProfile->user_id)
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
+        return ApiResponse::success(
+            data: [
+                'reviews' => ReviewResource::collection($reviews->getCollection()),
+                'pagination' => [
+                    'current_page' => $reviews->currentPage(),
+                    'per_page' => $reviews->perPage(),
+                    'last_page' => $reviews->lastPage(),
+                    'total' => $reviews->total(),
+                ],
+            ],
+            message: 'Avaliações carregadas com sucesso.',
         );
     }
 

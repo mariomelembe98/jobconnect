@@ -57,6 +57,11 @@ class Contract extends Model
         return $this->hasOne(Conversation::class);
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     /**
      * @return array<string, string>
      */

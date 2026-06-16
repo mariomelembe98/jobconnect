@@ -10,12 +10,14 @@ use App\Http\Controllers\Api\V1\Lookup\CategoryController;
 use App\Http\Controllers\Api\V1\Lookup\LocationController;
 use App\Http\Controllers\Api\V1\Lookup\SkillController;
 use App\Http\Controllers\Api\V1\MessageController;
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\Professional\DocumentController;
 use App\Http\Controllers\Api\V1\Professional\PortfolioController;
 use App\Http\Controllers\Api\V1\Professional\ProfileController as ProfessionalProfileController;
 use App\Http\Controllers\Api\V1\ProfessionalDirectoryController;
 use App\Http\Controllers\Api\V1\ProfessionalInvitationController;
 use App\Http\Controllers\Api\V1\ProposalController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\ServiceRequestController;
 use App\Http\Controllers\Api\V1\UserProfileController;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +27,8 @@ Route::prefix('v1')->group(function (): void {
     Route::get('skills', [SkillController::class, 'index']);
     Route::get('professionals', [ProfessionalDirectoryController::class, 'index']);
     Route::get('professionals/{professionalProfile}', [ProfessionalDirectoryController::class, 'show'])
+        ->missing(fn () => ProfessionalDirectoryController::missingResponse());
+    Route::get('professionals/{professionalProfile}/reviews', [ProfessionalDirectoryController::class, 'reviews'])
         ->missing(fn () => ProfessionalDirectoryController::missingResponse());
 
     Route::prefix('locations')->group(function (): void {
@@ -74,6 +78,14 @@ Route::prefix('v1')->group(function (): void {
         Route::post('conversations/{conversation}/messages', [ConversationController::class, 'storeMessage']);
         Route::post('conversations/{conversation}/read', [ConversationController::class, 'read']);
         Route::post('messages/{message}/attachments', [MessageController::class, 'storeAttachment']);
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::get('notifications/{notification}', [NotificationController::class, 'show']);
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('notifications/{notification}', [NotificationController::class, 'destroy']);
+        Route::post('reviews', [ReviewController::class, 'store']);
+        Route::get('reviews/me', [ReviewController::class, 'me']);
+        Route::get('reviews/{review}', [ReviewController::class, 'show']);
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::post('favorites', [FavoriteController::class, 'store']);
         Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);

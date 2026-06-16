@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Admin;
 
+use App\Enums\NotificationType;
 use App\Enums\VerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Admin\ApproveVerificationRequest;
@@ -9,6 +10,7 @@ use App\Http\Requests\Api\V1\Admin\RejectVerificationRequest;
 use App\Http\Resources\AdminVerificationResource;
 use App\Models\ProfessionalProfile;
 use App\Support\ApiResponse;
+use App\Support\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +84,18 @@ class VerificationController extends Controller
                 ]);
         });
 
+        if ($professionalProfile->user) {
+            app(NotificationService::class)->create(
+                $professionalProfile->user,
+                NotificationType::VerificationApproved->value,
+                'Verificação aprovada',
+                'A sua verificação foi aprovada.',
+                [
+                    'professional_profile_id' => $professionalProfile->id,
+                ],
+            );
+        }
+
         return ApiResponse::success(
             data: [
                 'verification' => new AdminVerificationResource(
@@ -112,6 +126,19 @@ class VerificationController extends Controller
                     'rejection_reason' => $reason,
                 ]);
         });
+
+        if ($professionalProfile->user) {
+            app(NotificationService::class)->create(
+                $professionalProfile->user,
+                NotificationType::VerificationRejected->value,
+                'Verificação rejeitada',
+                'A sua verificação foi rejeitada.',
+                [
+                    'professional_profile_id' => $professionalProfile->id,
+                    'reason' => $reason,
+                ],
+            );
+        }
 
         return ApiResponse::success(
             data: [

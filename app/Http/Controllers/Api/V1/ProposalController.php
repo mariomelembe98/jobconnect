@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\ContractStatus;
 use App\Enums\ConversationStatus;
+use App\Enums\NotificationType;
 use App\Enums\ProposalStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Http\Controllers\Controller;
@@ -18,6 +19,7 @@ use App\Models\Conversation;
 use App\Models\Proposal as ProposalModel;
 use App\Models\ServiceRequest as ServiceRequestModel;
 use App\Support\ApiResponse;
+use App\Support\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +54,17 @@ class ProposalController extends Controller
             'message' => $validated['message'] ?? null,
             'status' => ProposalStatus::Pending,
         ]);
+
+        app(NotificationService::class)->create(
+            $serviceRequest->client,
+            NotificationType::ProposalReceived->value,
+            'Nova proposta recebida',
+            'Recebeu uma nova proposta para o seu pedido de serviço.',
+            [
+                'proposal_id' => $proposal->id,
+                'service_request_id' => $serviceRequest->id,
+            ],
+        );
 
         return ApiResponse::success(
             data: [
@@ -177,8 +190,14 @@ class ProposalController extends Controller
 
         $contract = null;
         $conversation = null;
+        $otherPendingProposals = ProposalModel::query()
+            ->with('professionalProfile.user')
+            ->where('service_request_id', $serviceRequest->id)
+            ->where('status', ProposalStatus::Pending->value)
+            ->where('id', '!=', $proposal->id)
+            ->get();
 
-        DB::transaction(function () use ($proposal, $serviceRequest, $request, &$contract, &$conversation): void {
+        DB::transaction(function () use ($proposal, $serviceRequest, $request, &$contract, &$conversation, $otherPendingProposals): void {
             $now = now();
 
             $proposal->update([
@@ -189,9 +208,7 @@ class ProposalController extends Controller
             ]);
 
             ProposalModel::query()
-                ->where('service_request_id', $serviceRequest->id)
-                ->where('status', ProposalStatus::Pending->value)
-                ->where('id', '!=', $proposal->id)
+                ->whereIn('id', $otherPendingProposals->pluck('id'))
                 ->update([
                     'status' => ProposalStatus::Rejected,
                     'rejected_at' => $now,
@@ -228,6 +245,47 @@ class ProposalController extends Controller
                 'professional_profile_id' => $proposal->professional_profile_id,
                 'status' => ConversationStatus::Active,
             ]);
+
+            if ($proposal->professionalProfile?->user) {
+                app(NotificationService::class)->create(
+                    $proposal->professionalProfile->user,
+                    NotificationType::ProposalAccepted->value,
+                    'Proposta aceite',
+                    'A sua proposta foi aceite.',
+                    [
+                        'proposal_id' => $proposal->id,
+                        'service_request_id' => $serviceRequest->id,
+                        'contract_id' => $contract->id,
+                    ],
+                );
+
+                app(NotificationService::class)->create(
+                    $proposal->professionalProfile->user,
+                    NotificationType::ContractCreated->value,
+                    'Contrato criado',
+                    'Foi criado um contrato para a proposta aceite.',
+                    [
+                        'proposal_id' => $proposal->id,
+                        'service_request_id' => $serviceRequest->id,
+                        'contract_id' => $contract->id,
+                    ],
+                );
+            }
+
+            foreach ($otherPendingProposals as $otherProposal) {
+                if ($otherProposal->professionalProfile?->user) {
+                    app(NotificationService::class)->create(
+                        $otherProposal->professionalProfile->user,
+                        NotificationType::ProposalRejected->value,
+                        'Proposta rejeitada',
+                        'A sua proposta não foi seleccionada.',
+                        [
+                            'proposal_id' => $otherProposal->id,
+                            'service_request_id' => $serviceRequest->id,
+                        ],
+                    );
+                }
+            }
         });
 
         return ApiResponse::success(
@@ -260,6 +318,19 @@ class ProposalController extends Controller
             'status' => ProposalStatus::Rejected,
             'rejected_at' => now(),
         ]);
+
+        if ($proposal->professionalProfile?->user) {
+            app(NotificationService::class)->create(
+                $proposal->professionalProfile->user,
+                NotificationType::ProposalRejected->value,
+                'Proposta rejeitada',
+                'A sua proposta foi rejeitada.',
+                [
+                    'proposal_id' => $proposal->id,
+                    'service_request_id' => $serviceRequest->id,
+                ],
+            );
+        }
 
         return ApiResponse::success(
             data: [

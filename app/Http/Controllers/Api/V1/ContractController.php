@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\ContractStatus;
+use App\Enums\NotificationType;
 use App\Enums\ServiceRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Contracts\CancelContractRequest;
@@ -13,6 +14,7 @@ use App\Http\Resources\ContractStatusLogResource;
 use App\Models\Contract;
 use App\Models\ContractStatusLog;
 use App\Support\ApiResponse;
+use App\Support\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -102,6 +104,19 @@ class ContractController extends Controller
             ]);
         });
 
+        if ($contract->professionalProfile?->user) {
+            app(NotificationService::class)->create(
+                $contract->professionalProfile->user,
+                NotificationType::ContractCompleted->value,
+                'Contrato concluído',
+                'O contrato foi concluído pelo cliente.',
+                [
+                    'contract_id' => $contract->id,
+                    'service_request_id' => $contract->service_request_id,
+                ],
+            );
+        }
+
         return ApiResponse::success(
             data: [
                 'contract' => new ContractResource($contract->refresh()->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'statusLogs.changedBy'])),
@@ -140,6 +155,23 @@ class ContractController extends Controller
                 'note' => 'Contrato cancelado.',
             ]);
         });
+
+        $recipient = $request->user()?->hasRole('client') === true
+            ? $contract->professionalProfile?->user
+            : $contract->client;
+
+        if ($recipient) {
+            app(NotificationService::class)->create(
+                $recipient,
+                NotificationType::ContractCancelled->value,
+                'Contrato cancelado',
+                'Um contrato foi cancelado.',
+                [
+                    'contract_id' => $contract->id,
+                    'service_request_id' => $contract->service_request_id,
+                ],
+            );
+        }
 
         return ApiResponse::success(
             data: [

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\ConversationStatus;
 use App\Enums\MessageType;
+use App\Enums\NotificationType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Conversations\SendMessageRequest;
 use App\Http\Resources\ConversationListResource;
@@ -11,6 +12,7 @@ use App\Http\Resources\ConversationResource;
 use App\Http\Resources\MessageResource;
 use App\Models\Conversation;
 use App\Support\ApiResponse;
+use App\Support\NotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -118,6 +120,23 @@ class ConversationController extends Controller
             'message' => $request->validated('message'),
             'message_type' => MessageType::Text,
         ]);
+
+        $recipient = $conversation->client_id === $request->user()?->id
+            ? $conversation->professionalProfile?->user
+            : $conversation->client;
+
+        if ($recipient) {
+            app(NotificationService::class)->create(
+                $recipient,
+                NotificationType::NewMessage->value,
+                'Nova mensagem',
+                'Recebeu uma nova mensagem na conversa.',
+                [
+                    'conversation_id' => $conversation->id,
+                    'message_id' => $message->id,
+                ],
+            );
+        }
 
         return ApiResponse::success(
             data: [
