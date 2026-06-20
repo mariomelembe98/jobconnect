@@ -100,6 +100,21 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class);
     }
 
+    public function reportsMade(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
+    }
+
+    public function reportsReceived(): HasMany
+    {
+        return $this->hasMany(Report::class, 'reported_user_id');
+    }
+
+    public function disputesOpened(): HasMany
+    {
+        return $this->hasMany(Dispute::class, 'opened_by');
+    }
+
     /**
      * Get the attributes that should be cast.
      *

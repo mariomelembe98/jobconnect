@@ -1,10 +1,17 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\DisputeController as AdminDisputeController;
+use App\Http\Controllers\Api\V1\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Api\V1\Admin\SkillController as AdminSkillController;
+use App\Http\Controllers\Api\V1\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\V1\Admin\VerificationController as AdminVerificationController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Client\ServiceRequestController as ClientServiceRequestController;
 use App\Http\Controllers\Api\V1\ContractController;
 use App\Http\Controllers\Api\V1\ConversationController;
+use App\Http\Controllers\Api\V1\DisputeController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Lookup\CategoryController;
 use App\Http\Controllers\Api\V1\Lookup\LocationController;
@@ -17,9 +24,11 @@ use App\Http\Controllers\Api\V1\Professional\ProfileController as ProfessionalPr
 use App\Http\Controllers\Api\V1\ProfessionalDirectoryController;
 use App\Http\Controllers\Api\V1\ProfessionalInvitationController;
 use App\Http\Controllers\Api\V1\ProposalController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\ServiceRequestController;
 use App\Http\Controllers\Api\V1\UserProfileController;
+use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -86,6 +95,16 @@ Route::prefix('v1')->group(function (): void {
         Route::post('reviews', [ReviewController::class, 'store']);
         Route::get('reviews/me', [ReviewController::class, 'me']);
         Route::get('reviews/{review}', [ReviewController::class, 'show']);
+        Route::post('reports', [ReportController::class, 'store']);
+        Route::get('reports/me', [ReportController::class, 'me']);
+        Route::get('reports/{report}', [ReportController::class, 'show']);
+        Route::post('disputes', [DisputeController::class, 'store']);
+        Route::get('disputes', [DisputeController::class, 'index']);
+        Route::get('disputes/{dispute}', [DisputeController::class, 'show']);
+        Route::post('disputes/{dispute}/evidence', [DisputeController::class, 'storeEvidence']);
+        Route::get('disputes/{dispute}/evidence', [DisputeController::class, 'evidence']);
+        Route::get('disputes/{dispute}/messages', [DisputeController::class, 'messages']);
+        Route::post('disputes/{dispute}/messages', [DisputeController::class, 'storeMessage']);
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::post('favorites', [FavoriteController::class, 'store']);
         Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
@@ -96,7 +115,31 @@ Route::prefix('v1')->group(function (): void {
         Route::get('contracts/{contract}/logs', [ContractController::class, 'logs']);
     });
 
-    Route::middleware('auth:sanctum')->prefix('admin')->group(function (): void {
+    Route::middleware(['auth:sanctum', EnsureUserIsAdmin::class])->prefix('admin')->group(function (): void {
+        Route::get('dashboard', AdminDashboardController::class);
+        Route::get('users', [AdminUserController::class, 'index']);
+        Route::get('users/{user}', [AdminUserController::class, 'show']);
+        Route::patch('users/{user}', [AdminUserController::class, 'update']);
+        Route::post('users/{user}/suspend', [AdminUserController::class, 'suspend']);
+        Route::post('users/{user}/reactivate', [AdminUserController::class, 'reactivate']);
+        Route::post('users/{user}/block', [AdminUserController::class, 'block']);
+        Route::get('categories', [AdminCategoryController::class, 'index']);
+        Route::post('categories', [AdminCategoryController::class, 'store']);
+        Route::patch('categories/{category}', [AdminCategoryController::class, 'update']);
+        Route::delete('categories/{category}', [AdminCategoryController::class, 'destroy']);
+        Route::get('skills', [AdminSkillController::class, 'index']);
+        Route::post('skills', [AdminSkillController::class, 'store']);
+        Route::patch('skills/{skill}', [AdminSkillController::class, 'update']);
+        Route::delete('skills/{skill}', [AdminSkillController::class, 'destroy']);
+        Route::get('reports', [AdminReportController::class, 'index']);
+        Route::get('reports/{report}', [AdminReportController::class, 'show']);
+        Route::post('reports/{report}/review', [AdminReportController::class, 'review']);
+        Route::post('reports/{report}/resolve', [AdminReportController::class, 'resolve']);
+        Route::post('reports/{report}/dismiss', [AdminReportController::class, 'dismiss']);
+        Route::get('disputes', [AdminDisputeController::class, 'index']);
+        Route::get('disputes/{dispute}', [AdminDisputeController::class, 'show']);
+        Route::post('disputes/{dispute}/assign', [AdminDisputeController::class, 'assign']);
+        Route::post('disputes/{dispute}/resolve', [AdminDisputeController::class, 'resolve']);
         Route::get('verifications', [AdminVerificationController::class, 'index']);
         Route::get('verifications/{professionalProfile}', [AdminVerificationController::class, 'show'])
             ->missing(fn () => AdminVerificationController::missingResponse());

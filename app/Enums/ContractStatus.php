@@ -7,6 +7,7 @@ enum ContractStatus: string
     case Active = 'active';
     case Completed = 'completed';
     case Cancelled = 'cancelled';
+    case Disputed = 'disputed';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum ContractStatus: string
             self::Active => 'Activo',
             self::Completed => 'Concluído',
             self::Cancelled => 'Cancelado',
+            self::Disputed => 'Em disputa',
         };
     }
 

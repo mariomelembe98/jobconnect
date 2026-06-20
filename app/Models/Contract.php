@@ -62,6 +62,16 @@ class Contract extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function dispute(): HasOne
+    {
+        return $this->hasOne(Dispute::class)->latestOfMany();
+    }
+
+    public function disputes(): HasMany
+    {
+        return $this->hasMany(Dispute::class);
+    }
+
     /**
      * @return array<string, string>
      */

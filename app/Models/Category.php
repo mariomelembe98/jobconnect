@@ -14,6 +14,10 @@ class Category extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $attributes = [
+        'status' => 'active',
+    ];
+
     public function skills(): HasMany
     {
         return $this->hasMany(Skill::class);

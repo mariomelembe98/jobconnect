@@ -14,6 +14,8 @@ enum NotificationType: string
     case VerificationApproved = 'verification_approved';
     case VerificationRejected = 'verification_rejected';
     case ReviewReceived = 'review_received';
+    case DisputeOpened = 'dispute_opened';
+    case DisputeResolved = 'dispute_resolved';
     case System = 'system';
 
     public function label(): string
@@ -29,6 +31,8 @@ enum NotificationType: string
             self::VerificationApproved => 'Verificação aprovada',
             self::VerificationRejected => 'Verificação rejeitada',
             self::ReviewReceived => 'Avaliação recebida',
+            self::DisputeOpened => 'Disputa aberta',
+            self::DisputeResolved => 'Disputa resolvida',
             self::System => 'Sistema',
         };
     }

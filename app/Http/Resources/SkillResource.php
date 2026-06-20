@@ -20,6 +20,7 @@ class SkillResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            'status' => $this->status,
             'category' => new CategoryResource($this->whenLoaded('category')),
         ];
     }

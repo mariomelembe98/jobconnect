@@ -9,10 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['category_id', 'name', 'slug', 'description'])]
+#[Fillable(['category_id', 'name', 'slug', 'description', 'status'])]
 class Skill extends Model
 {
     use HasFactory, SoftDeletes;
+
+    protected $attributes = [
+        'status' => 'active',
+    ];
 
     public function category(): BelongsTo
     {

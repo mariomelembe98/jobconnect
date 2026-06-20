@@ -15,6 +15,7 @@ class SkillController extends Controller
     {
         $skills = Skill::query()
             ->with('category')
+            ->where('status', 'active')
             ->whereHas('category', fn ($query) => $query->where('status', 'active'))
             ->when(
                 $request->filled('category_id'),
