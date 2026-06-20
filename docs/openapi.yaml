@@ -1,0 +1,1617 @@
+openapi: 3.0.3
+info:
+  title: Tempo Connect API
+  version: 1.0.0
+  description: |
+    API do marketplace de serviços Tempo Connect. As mensagens apresentadas ao
+    utilizador são em português e todas as respostas usam o envelope ApiResponse.
+servers:
+  - url: http://localhost/api/v1
+    description: Ambiente local
+tags:
+  - name: Auth
+  - name: Users
+  - name: Lookups
+  - name: Professionals
+  - name: Service Requests
+  - name: Proposals
+  - name: Contracts
+  - name: Conversations
+  - name: Notifications
+  - name: Reviews
+  - name: Reports
+  - name: Disputes
+  - name: Admin
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Registar utilizador
+      security: []
+      requestBody: {$ref: '#/components/requestBodies/Register'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sessão
+      security: []
+      requestBody: {$ref: '#/components/requestBodies/Login'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Terminar sessão
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Obter utilizador autenticado
+      responses:
+        '200': {$ref: '#/components/responses/UserResponse'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Obter perfil próprio
+      responses:
+        '200': {$ref: '#/components/responses/UserResponse'}
+    patch:
+      tags: [Users]
+      summary: Actualizar perfil próprio
+      requestBody: {$ref: '#/components/requestBodies/UpdateUser'}
+      responses:
+        '200': {$ref: '#/components/responses/UserResponse'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /users/me/location:
+    patch:
+      tags: [Users]
+      summary: Actualizar localização própria
+      requestBody: {$ref: '#/components/requestBodies/UpdateLocation'}
+      responses:
+        '200': {$ref: '#/components/responses/UserResponse'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /users/me/password:
+    patch:
+      tags: [Users]
+      summary: Alterar palavra-passe
+      requestBody: {$ref: '#/components/requestBodies/ChangePassword'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /categories:
+    get:
+      tags: [Lookups]
+      summary: Listar categorias activas
+      security: []
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /skills:
+    get:
+      tags: [Lookups]
+      summary: Listar competências activas
+      security: []
+      parameters:
+        - {name: category_id, in: query, schema: {type: integer}}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /locations/provinces:
+    get:
+      tags: [Lookups]
+      summary: Listar províncias
+      security: []
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /locations/cities:
+    get:
+      tags: [Lookups]
+      summary: Listar cidades
+      security: []
+      parameters:
+        - {name: province, in: query, schema: {type: string}}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /professionals:
+    get:
+      tags: [Professionals]
+      summary: Pesquisar profissionais
+      security: []
+      parameters:
+        - {name: q, in: query, schema: {type: string}}
+        - {name: category_id, in: query, schema: {type: integer}}
+        - {name: skill_id, in: query, schema: {type: integer}}
+        - {name: province, in: query, schema: {type: string}}
+        - {name: city, in: query, schema: {type: string}}
+        - {name: page, in: query, schema: {type: integer, minimum: 1}}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /professionals/{professionalProfile}:
+    get:
+      tags: [Professionals]
+      summary: Consultar profissional
+      security: []
+      parameters:
+        - {$ref: '#/components/parameters/ProfessionalProfileId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /professionals/{professionalProfile}/reviews:
+    get:
+      tags: [Reviews]
+      summary: Listar avaliações de um profissional
+      security: []
+      parameters:
+        - {$ref: '#/components/parameters/ProfessionalProfileId'}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /professional/profile:
+    get:
+      tags: [Professionals]
+      summary: Obter perfil profissional próprio
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+    post:
+      tags: [Professionals]
+      summary: Criar perfil profissional
+      requestBody: {$ref: '#/components/requestBodies/ProfessionalProfile'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    patch:
+      tags: [Professionals]
+      summary: Actualizar perfil profissional
+      requestBody: {$ref: '#/components/requestBodies/ProfessionalProfileUpdate'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /professional/categories:
+    post:
+      tags: [Professionals]
+      summary: Associar categorias ao perfil
+      requestBody: {$ref: '#/components/requestBodies/CategoryIds'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /professional/skills:
+    post:
+      tags: [Professionals]
+      summary: Associar competências ao perfil
+      requestBody: {$ref: '#/components/requestBodies/SkillIds'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /professional/availability:
+    patch:
+      tags: [Professionals]
+      summary: Actualizar disponibilidade
+      requestBody: {$ref: '#/components/requestBodies/Availability'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /professional/portfolio:
+    get:
+      tags: [Professionals]
+      summary: Listar portefólio próprio
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+    post:
+      tags: [Professionals]
+      summary: Adicionar item ao portefólio
+      requestBody: {$ref: '#/components/requestBodies/PortfolioItem'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /professional/portfolio/{portfolioItem}:
+    delete:
+      tags: [Professionals]
+      summary: Remover item do portefólio
+      parameters:
+        - {$ref: '#/components/parameters/PortfolioItemId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /professional/documents:
+    get:
+      tags: [Professionals]
+      summary: Listar documentos profissionais
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+    post:
+      tags: [Professionals]
+      summary: Enviar documento profissional
+      requestBody: {$ref: '#/components/requestBodies/ProfessionalDocument'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /professional/documents/{document}:
+    get:
+      tags: [Professionals]
+      summary: Consultar documento profissional
+      parameters:
+        - {$ref: '#/components/parameters/DocumentId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /professional/verification:
+    get:
+      tags: [Professionals]
+      summary: Consultar estado de verificação
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /professional/invitations:
+    get:
+      tags: [Professionals]
+      summary: Listar convites recebidos
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /professional/invitations/{invitation}/decline:
+    post:
+      tags: [Professionals]
+      summary: Recusar convite
+      parameters:
+        - {$ref: '#/components/parameters/InvitationId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /favorites:
+    get:
+      tags: [Professionals]
+      summary: Listar profissionais favoritos
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+    post:
+      tags: [Professionals]
+      summary: Adicionar profissional aos favoritos
+      requestBody: {$ref: '#/components/requestBodies/Favorite'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+  /favorites/{professionalProfile}:
+    delete:
+      tags: [Professionals]
+      summary: Remover profissional dos favoritos
+      parameters:
+        - {$ref: '#/components/parameters/ProfessionalProfileId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /service-requests:
+    get:
+      tags: [Service Requests]
+      summary: Listar pedidos de serviço acessíveis
+      parameters:
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/ServiceRequestStatus'}}
+        - {name: category_id, in: query, schema: {type: integer}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+    post:
+      tags: [Service Requests]
+      summary: Criar pedido de serviço
+      requestBody: {$ref: '#/components/requestBodies/ServiceRequest'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /client/service-requests:
+    get:
+      tags: [Service Requests]
+      summary: Listar pedidos do cliente autenticado
+      parameters:
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/ServiceRequestStatus'}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /service-requests/{serviceRequest}:
+    get:
+      tags: [Service Requests]
+      summary: Consultar pedido de serviço
+      security: []
+      parameters:
+        - {$ref: '#/components/parameters/ServiceRequestId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      tags: [Service Requests]
+      summary: Actualizar pedido de serviço
+      parameters:
+        - {$ref: '#/components/parameters/ServiceRequestId'}
+      requestBody: {$ref: '#/components/requestBodies/ServiceRequestUpdate'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /service-requests/{serviceRequest}/cancel:
+    post:
+      tags: [Service Requests]
+      summary: Cancelar pedido de serviço
+      parameters:
+        - {$ref: '#/components/parameters/ServiceRequestId'}
+      requestBody: {$ref: '#/components/requestBodies/OptionalReason'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /service-requests/{serviceRequest}/attachments:
+    post:
+      tags: [Service Requests]
+      summary: Enviar anexos do pedido
+      parameters:
+        - {$ref: '#/components/parameters/ServiceRequestId'}
+      requestBody: {$ref: '#/components/requestBodies/MultipleFiles'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /service-requests/{serviceRequest}/attachments/{attachment}:
+    delete:
+      tags: [Service Requests]
+      summary: Remover anexo do pedido
+      parameters:
+        - {$ref: '#/components/parameters/ServiceRequestId'}
+        - {$ref: '#/components/parameters/AttachmentId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /service-requests/{serviceRequest}/invite:
+    post:
+      tags: [Service Requests]
+      summary: Convidar profissional para o pedido
+      parameters:
+        - {$ref: '#/components/parameters/ServiceRequestId'}
+      requestBody: {$ref: '#/components/requestBodies/ProfessionalInvitation'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /service-requests/{serviceRequest}/proposals:
+    get:
+      tags: [Proposals]
+      summary: Listar propostas de um pedido
+      parameters:
+        - {$ref: '#/components/parameters/ServiceRequestId'}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /proposals:
+    post:
+      tags: [Proposals]
+      summary: Enviar proposta
+      requestBody: {$ref: '#/components/requestBodies/Proposal'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /proposals/{proposal}:
+    get:
+      tags: [Proposals]
+      summary: Consultar proposta
+      parameters:
+        - {$ref: '#/components/parameters/ProposalId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /proposals/{proposal}/withdraw:
+    post:
+      tags: [Proposals]
+      summary: Retirar proposta
+      parameters:
+        - {$ref: '#/components/parameters/ProposalId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /proposals/{proposal}/accept:
+    post:
+      tags: [Proposals]
+      summary: Aceitar proposta
+      parameters:
+        - {$ref: '#/components/parameters/ProposalId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /proposals/{proposal}/reject:
+    post:
+      tags: [Proposals]
+      summary: Rejeitar proposta
+      parameters:
+        - {$ref: '#/components/parameters/ProposalId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /professional/proposals:
+    get:
+      tags: [Proposals]
+      summary: Listar propostas do profissional autenticado
+      parameters:
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/ProposalStatus'}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /contracts:
+    get:
+      tags: [Contracts]
+      summary: Listar contratos próprios
+      parameters:
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/ContractStatus'}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /contracts/{contract}:
+    get:
+      tags: [Contracts]
+      summary: Consultar contrato
+      parameters:
+        - {$ref: '#/components/parameters/ContractId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /contracts/{contract}/complete:
+    post:
+      tags: [Contracts]
+      summary: Concluir contrato
+      parameters:
+        - {$ref: '#/components/parameters/ContractId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /contracts/{contract}/cancel:
+    post:
+      tags: [Contracts]
+      summary: Cancelar contrato
+      parameters:
+        - {$ref: '#/components/parameters/ContractId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /contracts/{contract}/logs:
+    get:
+      tags: [Contracts]
+      summary: Listar histórico de estado do contrato
+      parameters:
+        - {$ref: '#/components/parameters/ContractId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /conversations:
+    get:
+      tags: [Conversations]
+      summary: Listar conversas
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /conversations/{conversation}:
+    get:
+      tags: [Conversations]
+      summary: Consultar conversa
+      parameters:
+        - {$ref: '#/components/parameters/ConversationId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /conversations/{conversation}/archive:
+    post:
+      tags: [Conversations]
+      summary: Arquivar conversa
+      parameters:
+        - {$ref: '#/components/parameters/ConversationId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /conversations/{conversation}/messages:
+    get:
+      tags: [Conversations]
+      summary: Listar mensagens da conversa
+      parameters:
+        - {$ref: '#/components/parameters/ConversationId'}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+    post:
+      tags: [Conversations]
+      summary: Enviar mensagem
+      parameters:
+        - {$ref: '#/components/parameters/ConversationId'}
+      requestBody: {$ref: '#/components/requestBodies/Message'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /conversations/{conversation}/read:
+    post:
+      tags: [Conversations]
+      summary: Marcar conversa como lida
+      parameters:
+        - {$ref: '#/components/parameters/ConversationId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /messages/{message}/attachments:
+    post:
+      tags: [Conversations]
+      summary: Adicionar anexo a uma mensagem
+      parameters:
+        - {$ref: '#/components/parameters/MessageId'}
+      requestBody: {$ref: '#/components/requestBodies/SingleFile'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: Listar notificações
+      parameters:
+        - {name: unread, in: query, schema: {type: boolean}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /notifications/read-all:
+    post:
+      tags: [Notifications]
+      summary: Marcar todas as notificações como lidas
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /notifications/{notification}:
+    get:
+      tags: [Notifications]
+      summary: Consultar notificação
+      parameters:
+        - {$ref: '#/components/parameters/NotificationId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+    delete:
+      tags: [Notifications]
+      summary: Eliminar notificação
+      parameters:
+        - {$ref: '#/components/parameters/NotificationId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /notifications/{notification}/read:
+    post:
+      tags: [Notifications]
+      summary: Marcar notificação como lida
+      parameters:
+        - {$ref: '#/components/parameters/NotificationId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /reviews:
+    post:
+      tags: [Reviews]
+      summary: Criar avaliação
+      requestBody: {$ref: '#/components/requestBodies/Review'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /reviews/me:
+    get:
+      tags: [Reviews]
+      summary: Listar avaliações próprias
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /reviews/{review}:
+    get:
+      tags: [Reviews]
+      summary: Consultar avaliação
+      parameters:
+        - {$ref: '#/components/parameters/ReviewId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /reports:
+    post:
+      tags: [Reports]
+      summary: Criar denúncia
+      requestBody: {$ref: '#/components/requestBodies/Report'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /reports/me:
+    get:
+      tags: [Reports]
+      summary: Listar denúncias próprias
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /reports/{report}:
+    get:
+      tags: [Reports]
+      summary: Consultar denúncia própria
+      parameters:
+        - {$ref: '#/components/parameters/ReportId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /disputes:
+    get:
+      tags: [Disputes]
+      summary: Listar disputas próprias
+      parameters:
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+    post:
+      tags: [Disputes]
+      summary: Abrir disputa
+      requestBody: {$ref: '#/components/requestBodies/Dispute'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /disputes/{dispute}:
+    get:
+      tags: [Disputes]
+      summary: Consultar disputa
+      parameters:
+        - {$ref: '#/components/parameters/DisputeId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /disputes/{dispute}/evidence:
+    get:
+      tags: [Disputes]
+      summary: Listar evidências da disputa
+      parameters:
+        - {$ref: '#/components/parameters/DisputeId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+    post:
+      tags: [Disputes]
+      summary: Enviar evidência
+      parameters:
+        - {$ref: '#/components/parameters/DisputeId'}
+      requestBody: {$ref: '#/components/requestBodies/DisputeEvidence'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /disputes/{dispute}/messages:
+    get:
+      tags: [Disputes]
+      summary: Listar mensagens da disputa
+      parameters:
+        - {$ref: '#/components/parameters/DisputeId'}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+    post:
+      tags: [Disputes]
+      summary: Enviar mensagem na disputa
+      parameters:
+        - {$ref: '#/components/parameters/DisputeId'}
+      requestBody: {$ref: '#/components/requestBodies/Message'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /admin/dashboard:
+    get:
+      tags: [Admin]
+      summary: Consultar painel administrativo
+      responses:
+        '200': {$ref: '#/components/responses/DashboardResponse'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: Listar utilizadores
+      parameters:
+        - {name: user_type, in: query, schema: {$ref: '#/components/schemas/UserType'}}
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/UserStatus'}}
+        - {name: q, in: query, schema: {type: string}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /admin/users/{user}:
+    get:
+      tags: [Admin]
+      summary: Consultar utilizador
+      parameters:
+        - {$ref: '#/components/parameters/UserId'}
+      responses:
+        '200': {$ref: '#/components/responses/UserResponse'}
+    patch:
+      tags: [Admin]
+      summary: Actualizar utilizador
+      parameters:
+        - {$ref: '#/components/parameters/UserId'}
+      requestBody: {$ref: '#/components/requestBodies/AdminUpdateUser'}
+      responses:
+        '200': {$ref: '#/components/responses/UserResponse'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /admin/users/{user}/suspend:
+    post:
+      tags: [Admin]
+      summary: Suspender utilizador
+      parameters:
+        - {$ref: '#/components/parameters/UserId'}
+      requestBody: {$ref: '#/components/requestBodies/OptionalReason'}
+      responses:
+        '200': {$ref: '#/components/responses/UserResponse'}
+  /admin/users/{user}/reactivate:
+    post:
+      tags: [Admin]
+      summary: Reactivar utilizador
+      parameters:
+        - {$ref: '#/components/parameters/UserId'}
+      responses:
+        '200': {$ref: '#/components/responses/UserResponse'}
+  /admin/users/{user}/block:
+    post:
+      tags: [Admin]
+      summary: Bloquear utilizador e revogar tokens
+      parameters:
+        - {$ref: '#/components/parameters/UserId'}
+      responses:
+        '200': {$ref: '#/components/responses/UserResponse'}
+  /admin/categories:
+    get:
+      tags: [Admin]
+      summary: Listar categorias administrativas
+      parameters:
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/ActivationStatus'}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+    post:
+      tags: [Admin]
+      summary: Criar categoria
+      requestBody: {$ref: '#/components/requestBodies/Category'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /admin/categories/{category}:
+    patch:
+      tags: [Admin]
+      summary: Actualizar categoria
+      parameters:
+        - {$ref: '#/components/parameters/CategoryId'}
+      requestBody: {$ref: '#/components/requestBodies/CategoryUpdate'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Admin]
+      summary: Eliminar categoria sem associações
+      parameters:
+        - {$ref: '#/components/parameters/CategoryId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/skills:
+    get:
+      tags: [Admin]
+      summary: Listar competências administrativas
+      parameters:
+        - {name: category_id, in: query, schema: {type: integer}}
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/ActivationStatus'}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+    post:
+      tags: [Admin]
+      summary: Criar competência
+      requestBody: {$ref: '#/components/requestBodies/Skill'}
+      responses:
+        '201': {$ref: '#/components/responses/Created'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /admin/skills/{skill}:
+    patch:
+      tags: [Admin]
+      summary: Actualizar competência
+      parameters:
+        - {$ref: '#/components/parameters/SkillId'}
+      requestBody: {$ref: '#/components/requestBodies/SkillUpdate'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+    delete:
+      tags: [Admin]
+      summary: Eliminar competência sem associações
+      parameters:
+        - {$ref: '#/components/parameters/SkillId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/reports:
+    get:
+      tags: [Admin]
+      summary: Listar todas as denúncias
+      parameters:
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/ReportStatus'}}
+        - {name: report_type, in: query, schema: {$ref: '#/components/schemas/ReportType'}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /admin/reports/{report}:
+    get:
+      tags: [Admin]
+      summary: Consultar denúncia
+      parameters:
+        - {$ref: '#/components/parameters/ReportId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /admin/reports/{report}/review:
+    post:
+      tags: [Admin]
+      summary: Marcar denúncia em análise
+      parameters:
+        - {$ref: '#/components/parameters/ReportId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /admin/reports/{report}/resolve:
+    post:
+      tags: [Admin]
+      summary: Resolver denúncia
+      parameters:
+        - {$ref: '#/components/parameters/ReportId'}
+      requestBody: {$ref: '#/components/requestBodies/ResolutionNote'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /admin/reports/{report}/dismiss:
+    post:
+      tags: [Admin]
+      summary: Descartar denúncia
+      parameters:
+        - {$ref: '#/components/parameters/ReportId'}
+      requestBody: {$ref: '#/components/requestBodies/ResolutionNote'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /admin/disputes:
+    get:
+      tags: [Admin]
+      summary: Listar todas as disputas
+      parameters:
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/DisputeStatus'}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /admin/disputes/{dispute}:
+    get:
+      tags: [Admin]
+      summary: Consultar disputa administrativa
+      parameters:
+        - {$ref: '#/components/parameters/DisputeId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /admin/disputes/{dispute}/assign:
+    post:
+      tags: [Admin]
+      summary: Atribuir disputa a administrador
+      parameters:
+        - {$ref: '#/components/parameters/DisputeId'}
+      requestBody: {$ref: '#/components/requestBodies/AssignDispute'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /admin/disputes/{dispute}/resolve:
+    post:
+      tags: [Admin]
+      summary: Resolver disputa
+      parameters:
+        - {$ref: '#/components/parameters/DisputeId'}
+      requestBody: {$ref: '#/components/requestBodies/ResolveDispute'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+  /admin/verifications:
+    get:
+      tags: [Admin]
+      summary: Listar verificações profissionais
+      parameters:
+        - {name: status, in: query, schema: {$ref: '#/components/schemas/VerificationStatus'}}
+        - {$ref: '#/components/parameters/Page'}
+      responses:
+        '200': {$ref: '#/components/responses/PaginatedSuccess'}
+  /admin/verifications/{professionalProfile}:
+    get:
+      tags: [Admin]
+      summary: Consultar verificação profissional
+      parameters:
+        - {$ref: '#/components/parameters/ProfessionalProfileId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/verifications/{professionalProfile}/approve:
+    post:
+      tags: [Admin]
+      summary: Aprovar verificação profissional
+      parameters:
+        - {$ref: '#/components/parameters/ProfessionalProfileId'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+  /admin/verifications/{professionalProfile}/reject:
+    post:
+      tags: [Admin]
+      summary: Rejeitar verificação profissional
+      parameters:
+        - {$ref: '#/components/parameters/ProfessionalProfileId'}
+      requestBody: {$ref: '#/components/requestBodies/RequiredReason'}
+      responses:
+        '200': {$ref: '#/components/responses/Success'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum token
+  parameters:
+    Page: {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+    UserId: {name: user, in: path, required: true, schema: {type: integer}}
+    CategoryId: {name: category, in: path, required: true, schema: {type: integer}}
+    SkillId: {name: skill, in: path, required: true, schema: {type: integer}}
+    ProfessionalProfileId: {name: professionalProfile, in: path, required: true, schema: {type: integer}}
+    PortfolioItemId: {name: portfolioItem, in: path, required: true, schema: {type: integer}}
+    DocumentId: {name: document, in: path, required: true, schema: {type: integer}}
+    InvitationId: {name: invitation, in: path, required: true, schema: {type: integer}}
+    ServiceRequestId: {name: serviceRequest, in: path, required: true, schema: {type: integer}}
+    AttachmentId: {name: attachment, in: path, required: true, schema: {type: integer}}
+    ProposalId: {name: proposal, in: path, required: true, schema: {type: integer}}
+    ContractId: {name: contract, in: path, required: true, schema: {type: integer}}
+    ConversationId: {name: conversation, in: path, required: true, schema: {type: integer}}
+    MessageId: {name: message, in: path, required: true, schema: {type: integer}}
+    NotificationId: {name: notification, in: path, required: true, schema: {type: integer}}
+    ReviewId: {name: review, in: path, required: true, schema: {type: integer}}
+    ReportId: {name: report, in: path, required: true, schema: {type: integer}}
+    DisputeId: {name: dispute, in: path, required: true, schema: {type: integer}}
+  responses:
+    Success:
+      description: Operação concluída com sucesso.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiSuccessResponse'}
+    Created:
+      description: Recurso criado com sucesso.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiSuccessResponse'}
+    PaginatedSuccess:
+      description: Lista paginada carregada com sucesso.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/PaginatedApiResponse'}
+    UserResponse:
+      description: Utilizador carregado com sucesso.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/ApiSuccessResponse'}
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user: {$ref: '#/components/schemas/User'}
+    DashboardResponse:
+      description: Painel carregado com sucesso.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/ApiSuccessResponse'}
+              - type: object
+                properties:
+                  data: {$ref: '#/components/schemas/AdminDashboard'}
+    ValidationError:
+      description: Dados inválidos.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiErrorResponse'}
+    Unauthenticated:
+      description: Token ausente ou inválido.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiErrorResponse'}
+    Forbidden:
+      description: Operação não autorizada.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiErrorResponse'}
+    NotFound:
+      description: Recurso não encontrado.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiErrorResponse'}
+    Conflict:
+      description: Conflito com o estado actual do recurso.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ApiErrorResponse'}
+  requestBodies:
+    Register:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/RegisterRequest'}
+    Login:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/LoginRequest'}
+    UpdateUser:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/UpdateUserRequest'}
+    AdminUpdateUser:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/AdminUpdateUserRequest'}
+    UpdateLocation:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/LocationInput'}
+    ChangePassword:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ChangePasswordRequest'}
+    ProfessionalProfile:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/ProfessionalProfileInput'}
+              - required: [headline, bio, experience_years, price_type, province, city]
+    ProfessionalProfileUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/ProfessionalProfileInput'}
+    CategoryIds:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [category_ids]
+            properties:
+              category_ids: {type: array, minItems: 1, maxItems: 5, items: {type: integer}}
+    SkillIds:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [skill_ids]
+            properties:
+              skill_ids: {type: array, minItems: 1, items: {type: integer}}
+    Availability:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [availability]
+            properties:
+              availability: {type: string, enum: [available, busy, away, vacation, unavailable]}
+    PortfolioItem:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [title, file]
+            properties:
+              title: {type: string, maxLength: 255}
+              description: {type: string, nullable: true}
+              file: {type: string, format: binary, description: 'JPG, PNG, WebP ou PDF; máximo 20 MB.'}
+    ProfessionalDocument:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [document_type, file]
+            properties:
+              document_type: {type: string, enum: [bi, nuit, certificate, portfolio, other]}
+              file: {type: string, format: binary, description: 'JPG, PNG, WebP ou PDF; máximo 20 MB.'}
+    Favorite:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [professional_profile_id]
+            properties:
+              professional_profile_id: {type: integer}
+    ServiceRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/ServiceRequestInput'}
+              - required: [category_id, title, description, service_type, budget_type, visibility]
+    ServiceRequestUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/ServiceRequestInput'}
+    OptionalReason:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              reason: {type: string, nullable: true, maxLength: 1000}
+    RequiredReason:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [reason]
+            properties:
+              reason: {type: string, maxLength: 2000}
+    MultipleFiles:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [files]
+            properties:
+              files:
+                type: array
+                minItems: 1
+                maxItems: 10
+                items: {type: string, format: binary}
+    SingleFile:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [file]
+            properties:
+              file: {type: string, format: binary}
+    ProfessionalInvitation:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [professional_profile_id]
+            properties:
+              professional_profile_id: {type: integer}
+              message: {type: string, nullable: true, maxLength: 2000}
+    Proposal:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ProposalInput'}
+    Message:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message]
+            properties:
+              message: {type: string, maxLength: 5000}
+    Review:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ReviewInput'}
+    Report:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ReportInput'}
+    Dispute:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/DisputeInput'}
+    DisputeEvidence:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [file]
+            properties:
+              file: {type: string, format: binary, description: 'JPG, PNG, WebP ou PDF; máximo 20 MB.'}
+              description: {type: string, nullable: true, maxLength: 2000}
+    Category:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/CategoryInput'}
+              - required: [name]
+    CategoryUpdate:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/CategoryInput'}
+    Skill:
+      required: true
+      content:
+        application/json:
+          schema:
+            allOf:
+              - {$ref: '#/components/schemas/SkillInput'}
+              - required: [category_id, name]
+    SkillUpdate:
+      required: true
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/SkillInput'}
+    ResolutionNote:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [resolution_note]
+            properties:
+              resolution_note: {type: string, maxLength: 5000}
+    AssignDispute:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [assigned_to]
+            properties:
+              assigned_to: {type: integer}
+    ResolveDispute:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [resolution]
+            properties:
+              resolution: {$ref: '#/components/schemas/DisputeResolution'}
+              resolution_note: {type: string, nullable: true, maxLength: 5000}
+  schemas:
+    ApiSuccessResponse:
+      type: object
+      required: [success, message, data]
+      properties:
+        success: {type: boolean, enum: [true]}
+        message: {type: string, example: Operação concluída com sucesso.}
+        data: {type: object, additionalProperties: true}
+    ApiErrorResponse:
+      type: object
+      required: [success, message, errors]
+      properties:
+        success: {type: boolean, enum: [false]}
+        message: {type: string, example: Os dados fornecidos são inválidos.}
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: {type: string}
+    Pagination:
+      type: object
+      required: [current_page, per_page, last_page, total]
+      properties:
+        current_page: {type: integer, minimum: 1}
+        per_page: {type: integer, minimum: 1}
+        last_page: {type: integer, minimum: 1}
+        total: {type: integer, minimum: 0}
+    PaginatedApiResponse:
+      allOf:
+        - {$ref: '#/components/schemas/ApiSuccessResponse'}
+        - type: object
+          properties:
+            data:
+              type: object
+              required: [pagination]
+              properties:
+                pagination: {$ref: '#/components/schemas/Pagination'}
+              additionalProperties: true
+    UserType: {type: string, enum: [client, professional, admin]}
+    UserStatus: {type: string, enum: [pending, active, inactive, suspended, blocked]}
+    ActivationStatus: {type: string, enum: [active, inactive]}
+    VerificationStatus: {type: string, enum: [pending, under_review, approved, rejected, expired]}
+    ServiceRequestStatus: {type: string, enum: [draft, published, receiving_proposals, in_progress, completed, cancelled]}
+    ProposalStatus: {type: string, enum: [pending, accepted, rejected, withdrawn, expired]}
+    ContractStatus: {type: string, enum: [active, completed, cancelled, disputed]}
+    ReportStatus: {type: string, enum: [pending, reviewing, resolved, dismissed]}
+    ReportType: {type: string, enum: [user, service_request, contract, message, review]}
+    ReportReason: {type: string, enum: [fraud, abuse, fake_profile, inappropriate_content, service_not_delivered, spam, other]}
+    DisputeStatus: {type: string, enum: [pending, under_review, resolved, dismissed]}
+    DisputeResolution: {type: string, enum: [favor_client, favor_professional, mutual_agreement, dismissed]}
+    RegisterRequest:
+      type: object
+      required: [name, phone, password, password_confirmation, user_type]
+      properties:
+        name: {type: string, minLength: 3, maxLength: 255}
+        email: {type: string, format: email, nullable: true}
+        phone: {type: string, example: '+258841234567'}
+        password: {type: string, format: password, minLength: 8}
+        password_confirmation: {type: string, format: password}
+        user_type: {type: string, enum: [client, professional]}
+    LoginRequest:
+      type: object
+      required: [identifier, password]
+      properties:
+        identifier: {type: string, description: Email ou telefone.}
+        password: {type: string, format: password}
+    UpdateUserRequest:
+      type: object
+      properties:
+        name: {type: string, minLength: 3, maxLength: 255}
+        email: {type: string, format: email, nullable: true}
+        phone: {type: string}
+    AdminUpdateUserRequest:
+      allOf:
+        - {$ref: '#/components/schemas/UpdateUserRequest'}
+        - type: object
+          properties:
+            user_type: {$ref: '#/components/schemas/UserType'}
+            status: {$ref: '#/components/schemas/UserStatus'}
+    ChangePasswordRequest:
+      type: object
+      required: [current_password, password, password_confirmation]
+      properties:
+        current_password: {type: string, format: password}
+        password: {type: string, format: password, minLength: 8}
+        password_confirmation: {type: string, format: password}
+    LocationInput:
+      type: object
+      required: [province, city]
+      properties:
+        province: {type: string, maxLength: 100}
+        city: {type: string, maxLength: 100}
+        address: {type: string, nullable: true, maxLength: 255}
+        latitude: {type: number, format: double, nullable: true, minimum: -90, maximum: 90}
+        longitude: {type: number, format: double, nullable: true, minimum: -180, maximum: 180}
+    User:
+      type: object
+      properties:
+        id: {type: integer}
+        name: {type: string}
+        email: {type: string, format: email, nullable: true}
+        phone: {type: string, nullable: true}
+        avatar: {type: string, nullable: true}
+        user_type: {$ref: '#/components/schemas/UserType'}
+        status: {$ref: '#/components/schemas/UserStatus'}
+        province: {type: string, nullable: true}
+        city: {type: string, nullable: true}
+        created_at: {type: string, format: date-time}
+    Category:
+      type: object
+      properties:
+        id: {type: integer}
+        name: {type: string}
+        slug: {type: string}
+        description: {type: string, nullable: true}
+        icon: {type: string, nullable: true}
+        status: {$ref: '#/components/schemas/ActivationStatus'}
+    CategoryInput:
+      type: object
+      properties:
+        name: {type: string, maxLength: 255}
+        slug: {type: string, maxLength: 255}
+        description: {type: string, nullable: true, maxLength: 2000}
+        icon: {type: string, nullable: true, maxLength: 255}
+        status: {$ref: '#/components/schemas/ActivationStatus'}
+    Skill:
+      type: object
+      properties:
+        id: {type: integer}
+        category_id: {type: integer}
+        name: {type: string}
+        slug: {type: string}
+        description: {type: string, nullable: true}
+        status: {$ref: '#/components/schemas/ActivationStatus'}
+    SkillInput:
+      type: object
+      properties:
+        category_id: {type: integer}
+        name: {type: string, maxLength: 255}
+        slug: {type: string, maxLength: 255}
+        description: {type: string, nullable: true, maxLength: 2000}
+        status: {$ref: '#/components/schemas/ActivationStatus'}
+    ProfessionalProfileInput:
+      type: object
+      properties:
+        headline: {type: string, maxLength: 255}
+        bio: {type: string, minLength: 30}
+        experience_years: {type: integer, minimum: 0, maximum: 60}
+        base_price: {type: number, format: double, nullable: true, minimum: 0}
+        price_type: {type: string, enum: [hourly, fixed, negotiable]}
+        province: {type: string, maxLength: 100}
+        city: {type: string, maxLength: 100}
+        address: {type: string, nullable: true, maxLength: 255}
+        latitude: {type: number, nullable: true, minimum: -90, maximum: 90}
+        longitude: {type: number, nullable: true, minimum: -180, maximum: 180}
+    ProfessionalProfile:
+      allOf:
+        - {$ref: '#/components/schemas/ProfessionalProfileInput'}
+        - type: object
+          properties:
+            id: {type: integer}
+            user_id: {type: integer}
+            verification_status: {$ref: '#/components/schemas/VerificationStatus'}
+            availability: {type: string, enum: [available, busy, away, vacation, unavailable]}
+            average_rating: {type: number, format: float}
+            total_reviews: {type: integer}
+    ServiceRequestInput:
+      type: object
+      properties:
+        category_id: {type: integer}
+        title: {type: string, minLength: 5, maxLength: 255}
+        description: {type: string, minLength: 30}
+        service_type: {type: string, enum: [local, remote, hybrid]}
+        budget_min: {type: number, nullable: true, minimum: 0}
+        budget_max: {type: number, nullable: true, minimum: 0}
+        budget_type: {type: string, enum: [fixed, hourly, negotiable]}
+        province: {type: string, nullable: true, maxLength: 100}
+        city: {type: string, nullable: true, maxLength: 100}
+        address: {type: string, nullable: true, maxLength: 255}
+        latitude: {type: number, nullable: true, minimum: -90, maximum: 90}
+        longitude: {type: number, nullable: true, minimum: -180, maximum: 180}
+        deadline_at: {type: string, format: date-time, nullable: true}
+        visibility: {type: string, enum: [public, private, invited_only]}
+    ServiceRequest:
+      allOf:
+        - {$ref: '#/components/schemas/ServiceRequestInput'}
+        - type: object
+          properties:
+            id: {type: integer}
+            client_id: {type: integer}
+            status: {$ref: '#/components/schemas/ServiceRequestStatus'}
+            created_at: {type: string, format: date-time}
+    ProposalInput:
+      type: object
+      required: [service_request_id, amount]
+      properties:
+        service_request_id: {type: integer}
+        amount: {type: number, format: double, minimum: 1}
+        delivery_days: {type: integer, nullable: true, minimum: 1}
+        message: {type: string, nullable: true, maxLength: 2000}
+    Proposal:
+      allOf:
+        - {$ref: '#/components/schemas/ProposalInput'}
+        - type: object
+          properties:
+            id: {type: integer}
+            professional_profile_id: {type: integer}
+            status: {$ref: '#/components/schemas/ProposalStatus'}
+            created_at: {type: string, format: date-time}
+    Contract:
+      type: object
+      properties:
+        id: {type: integer}
+        service_request_id: {type: integer}
+        proposal_id: {type: integer}
+        client_id: {type: integer}
+        professional_profile_id: {type: integer}
+        amount: {type: string, example: '1500.00'}
+        platform_fee: {type: string, example: '150.00'}
+        professional_amount: {type: string, example: '1350.00'}
+        status: {$ref: '#/components/schemas/ContractStatus'}
+        started_at: {type: string, format: date-time, nullable: true}
+        completed_at: {type: string, format: date-time, nullable: true}
+    Conversation:
+      type: object
+      properties:
+        id: {type: integer}
+        service_request_id: {type: integer}
+        client_id: {type: integer}
+        professional_profile_id: {type: integer}
+        status: {type: string, enum: [active, archived]}
+        last_message_at: {type: string, format: date-time, nullable: true}
+    Message:
+      type: object
+      properties:
+        id: {type: integer}
+        conversation_id: {type: integer}
+        sender_id: {type: integer}
+        message: {type: string}
+        read_at: {type: string, format: date-time, nullable: true}
+        created_at: {type: string, format: date-time}
+    Notification:
+      type: object
+      properties:
+        id: {type: integer}
+        user_id: {type: integer}
+        type: {type: string}
+        title: {type: string}
+        body: {type: string, nullable: true}
+        data: {type: object, nullable: true, additionalProperties: true}
+        read_at: {type: string, format: date-time, nullable: true}
+        created_at: {type: string, format: date-time}
+    ReviewInput:
+      type: object
+      required: [contract_id, rating]
+      properties:
+        contract_id: {type: integer}
+        rating: {type: integer, minimum: 1, maximum: 5}
+        comment: {type: string, nullable: true, maxLength: 1000}
+    Review:
+      allOf:
+        - {$ref: '#/components/schemas/ReviewInput'}
+        - type: object
+          properties:
+            id: {type: integer}
+            reviewer_id: {type: integer}
+            reviewed_id: {type: integer}
+            created_at: {type: string, format: date-time}
+    ReportInput:
+      type: object
+      required: [report_type, reason]
+      description: O identificador correspondente a report_type também é obrigatório.
+      properties:
+        report_type: {type: string, enum: [user, service_request, contract]}
+        reported_user_id: {type: integer, nullable: true}
+        service_request_id: {type: integer, nullable: true}
+        contract_id: {type: integer, nullable: true}
+        reason: {$ref: '#/components/schemas/ReportReason'}
+        description: {type: string, nullable: true, maxLength: 5000}
+    Report:
+      allOf:
+        - {$ref: '#/components/schemas/ReportInput'}
+        - type: object
+          properties:
+            id: {type: integer}
+            reporter_id: {type: integer}
+            status: {$ref: '#/components/schemas/ReportStatus'}
+            reviewed_by: {type: integer, nullable: true}
+            reviewed_at: {type: string, format: date-time, nullable: true}
+            resolution_note: {type: string, nullable: true}
+            created_at: {type: string, format: date-time}
+    DisputeInput:
+      type: object
+      required: [contract_id, reason]
+      properties:
+        contract_id: {type: integer}
+        reason: {type: string, maxLength: 255}
+        description: {type: string, nullable: true, maxLength: 5000}
+    Dispute:
+      allOf:
+        - {$ref: '#/components/schemas/DisputeInput'}
+        - type: object
+          properties:
+            id: {type: integer}
+            opened_by: {type: integer}
+            assigned_to: {type: integer, nullable: true}
+            status: {$ref: '#/components/schemas/DisputeStatus'}
+            resolution: {$ref: '#/components/schemas/DisputeResolution'}
+            resolution_note: {type: string, nullable: true}
+            resolved_at: {type: string, format: date-time, nullable: true}
+            created_at: {type: string, format: date-time}
+    DisputeEvidence:
+      type: object
+      properties:
+        id: {type: integer}
+        dispute_id: {type: integer}
+        uploaded_by: {type: integer}
+        file_name: {type: string}
+        file_type: {type: string, nullable: true}
+        file_size: {type: integer, nullable: true}
+        file_url: {type: string, format: uri}
+        description: {type: string, nullable: true}
+        created_at: {type: string, format: date-time}
+    DisputeMessage:
+      type: object
+      properties:
+        id: {type: integer}
+        dispute_id: {type: integer}
+        sender_id: {type: integer}
+        message: {type: string}
+        created_at: {type: string, format: date-time}
+    AdminDashboard:
+      type: object
+      required: [users_total, clients_total, professionals_total, verified_professionals, service_requests_total, active_contracts, completed_contracts, open_disputes, pending_reports]
+      properties:
+        users_total: {type: integer, minimum: 0}
+        clients_total: {type: integer, minimum: 0}
+        professionals_total: {type: integer, minimum: 0}
+        verified_professionals: {type: integer, minimum: 0}
+        service_requests_total: {type: integer, minimum: 0}
+        active_contracts: {type: integer, minimum: 0}
+        completed_contracts: {type: integer, minimum: 0}
+        open_disputes: {type: integer, minimum: 0}
+        pending_reports: {type: integer, minimum: 0}
