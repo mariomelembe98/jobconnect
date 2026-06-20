@@ -1,0 +1,232 @@
+{
+  "info": {
+    "_postman_id": "b58b3234-5a5d-4e1a-96be-7e9c0a1b2c3d",
+    "name": "Tempo Connect API",
+    "description": "Postman collection for all Tempo Connect /api/v1 endpoints documented in docs/openapi.yaml.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {"type": "noauth"}, "method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"name\": \"Utilizador Teste\",\n  \"email\": \"utilizador@example.com\",\n  \"phone\": \"+258841234567\",\n  \"password\": \"password\",\n  \"password_confirmation\": \"password\",\n  \"user_type\": \"client\"\n}", "options": {"raw": {"language": "json"}}},
+            "url": "{{base_url}}/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["const response = pm.response.json();", "if (response && response.data && response.data.token) {", "  pm.environment.set('token', response.data.token);", "}"]}}],
+          "request": {
+            "auth": {"type": "noauth"}, "method": "POST", "header": [{"key": "Accept", "value": "application/json"}, {"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\n  \"identifier\": \"admin@tempoconnect.local\",\n  \"password\": \"password\"\n}", "options": {"raw": {"language": "json"}}},
+            "url": "{{base_url}}/auth/login"
+          }
+        },
+        {"name": "Logout", "request": {"method": "POST", "header": [{"key": "Accept", "value": "application/json"}], "url": "{{base_url}}/auth/logout"}},
+        {"name": "Current User", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": "{{base_url}}/auth/me"}}
+      ]
+    },
+    {
+      "name": "Users",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "Get My Profile", "request": {"method": "GET", "header": [{"key": "Accept", "value": "application/json"}], "url": "{{base_url}}/users/me"}},
+        {"name": "Update My Profile", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\":\"Nome Actualizado\",\"email\":\"novo@example.com\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/users/me"}},
+        {"name": "Update My Location", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"province\":\"Maputo Cidade\",\"city\":\"Maputo\",\"address\":\"Avenida 24 de Julho\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/users/me/location"}},
+        {"name": "Change Password", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"current_password\":\"password\",\"password\":\"new-password\",\"password_confirmation\":\"new-password\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/users/me/password"}}
+      ]
+    },
+    {
+      "name": "Lookups",
+      "auth": {"type": "noauth"},
+      "item": [
+        {"name": "List Categories", "request": {"method": "GET", "url": "{{base_url}}/categories"}},
+        {"name": "List Skills", "request": {"method": "GET", "url": "{{base_url}}/skills?category_id={{category_id}}"}},
+        {"name": "List Provinces", "request": {"method": "GET", "url": "{{base_url}}/locations/provinces"}},
+        {"name": "List Cities", "request": {"method": "GET", "url": "{{base_url}}/locations/cities?province=Maputo"}}
+      ]
+    },
+    {
+      "name": "Professionals",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "Search Professionals", "request": {"auth": {"type": "noauth"}, "method": "GET", "url": "{{base_url}}/professionals?q=&category_id=&skill_id=&province=&city=&page=1"}},
+        {"name": "Get Professional", "request": {"auth": {"type": "noauth"}, "method": "GET", "url": "{{base_url}}/professionals/{{professional_profile_id}}"}},
+        {"name": "Get Own Professional Profile", "request": {"method": "GET", "url": "{{base_url}}/professional/profile"}},
+        {"name": "Create Professional Profile", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"headline\":\"Electricista profissional\",\"bio\":\"Profissional experiente disponível para serviços em Maputo.\",\"experience_years\":5,\"base_price\":1000,\"price_type\":\"negotiable\",\"province\":\"Maputo Cidade\",\"city\":\"Maputo\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/professional/profile"}},
+        {"name": "Update Professional Profile", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"headline\":\"Especialista actualizado\",\"experience_years\":6}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/professional/profile"}},
+        {"name": "Assign Professional Categories", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"category_ids\":[{{category_id}}]}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/professional/categories"}},
+        {"name": "Assign Professional Skills", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"skill_ids\":[{{skill_id}}]}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/professional/skills"}},
+        {"name": "Update Availability", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"availability\":\"available\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/professional/availability"}},
+        {"name": "List Portfolio", "request": {"method": "GET", "url": "{{base_url}}/professional/portfolio"}},
+        {"name": "Add Portfolio Item", "request": {"method": "POST", "body": {"mode": "formdata", "formdata": [{"key": "title", "value": "Trabalho concluído", "type": "text"}, {"key": "description", "value": "Exemplo de trabalho", "type": "text"}, {"key": "file", "type": "file", "src": ""}]}, "url": "{{base_url}}/professional/portfolio"}},
+        {"name": "Delete Portfolio Item", "request": {"method": "DELETE", "url": "{{base_url}}/professional/portfolio/{{portfolio_item_id}}"}},
+        {"name": "List Documents", "request": {"method": "GET", "url": "{{base_url}}/professional/documents"}},
+        {"name": "Upload Document", "request": {"method": "POST", "body": {"mode": "formdata", "formdata": [{"key": "document_type", "value": "bi", "type": "text"}, {"key": "file", "type": "file", "src": ""}]}, "url": "{{base_url}}/professional/documents"}},
+        {"name": "Get Document", "request": {"method": "GET", "url": "{{base_url}}/professional/documents/{{document_id}}"}},
+        {"name": "Get Verification Status", "request": {"method": "GET", "url": "{{base_url}}/professional/verification"}},
+        {"name": "List Invitations", "request": {"method": "GET", "url": "{{base_url}}/professional/invitations?page=1"}},
+        {"name": "Decline Invitation", "request": {"method": "POST", "url": "{{base_url}}/professional/invitations/{{invitation_id}}/decline"}},
+        {"name": "List Favorites", "request": {"method": "GET", "url": "{{base_url}}/favorites?page=1"}},
+        {"name": "Add Favorite", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"professional_profile_id\":{{professional_profile_id}}}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/favorites"}},
+        {"name": "Remove Favorite", "request": {"method": "DELETE", "url": "{{base_url}}/favorites/{{professional_profile_id}}"}}
+      ]
+    },
+    {
+      "name": "Service Requests",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "List Service Requests", "request": {"method": "GET", "url": "{{base_url}}/service-requests?status=&category_id=&page=1"}},
+        {"name": "Create Service Request", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"category_id\":{{category_id}},\"title\":\"Instalação eléctrica residencial\",\"description\":\"Preciso de instalação eléctrica completa para uma residência em Maputo.\",\"service_type\":\"local\",\"budget_min\":5000,\"budget_max\":10000,\"budget_type\":\"negotiable\",\"province\":\"Maputo Cidade\",\"city\":\"Maputo\",\"visibility\":\"public\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/service-requests"}},
+        {"name": "List My Client Service Requests", "request": {"method": "GET", "url": "{{base_url}}/client/service-requests?status=&page=1"}},
+        {"name": "Get Service Request", "request": {"auth": {"type": "noauth"}, "method": "GET", "url": "{{base_url}}/service-requests/{{service_request_id}}"}},
+        {"name": "Update Service Request", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"title\":\"Instalação eléctrica actualizada\",\"budget_max\":12000}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/service-requests/{{service_request_id}}"}},
+        {"name": "Cancel Service Request", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"reason\":\"O serviço já não é necessário.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/service-requests/{{service_request_id}}/cancel"}},
+        {"name": "Upload Service Request Attachments", "request": {"method": "POST", "body": {"mode": "formdata", "formdata": [{"key": "files[]", "type": "file", "src": ""}]}, "url": "{{base_url}}/service-requests/{{service_request_id}}/attachments"}},
+        {"name": "Delete Service Request Attachment", "request": {"method": "DELETE", "url": "{{base_url}}/service-requests/{{service_request_id}}/attachments/{{attachment_id}}"}},
+        {"name": "Invite Professional", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"professional_profile_id\":{{professional_profile_id}},\"message\":\"Gostaria de receber a sua proposta.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/service-requests/{{service_request_id}}/invite"}}
+      ]
+    },
+    {
+      "name": "Proposals",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "List Service Request Proposals", "request": {"method": "GET", "url": "{{base_url}}/service-requests/{{service_request_id}}/proposals?page=1"}},
+        {"name": "Create Proposal", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"service_request_id\":{{service_request_id}},\"amount\":7500,\"delivery_days\":5,\"message\":\"Posso realizar este serviço.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/proposals"}},
+        {"name": "Get Proposal", "request": {"method": "GET", "url": "{{base_url}}/proposals/{{proposal_id}}"}},
+        {"name": "Withdraw Proposal", "request": {"method": "POST", "url": "{{base_url}}/proposals/{{proposal_id}}/withdraw"}},
+        {"name": "Accept Proposal", "request": {"method": "POST", "url": "{{base_url}}/proposals/{{proposal_id}}/accept"}},
+        {"name": "Reject Proposal", "request": {"method": "POST", "url": "{{base_url}}/proposals/{{proposal_id}}/reject"}},
+        {"name": "List My Professional Proposals", "request": {"method": "GET", "url": "{{base_url}}/professional/proposals?status=&page=1"}}
+      ]
+    },
+    {
+      "name": "Contracts",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "List Contracts", "request": {"method": "GET", "url": "{{base_url}}/contracts?status=&page=1"}},
+        {"name": "Get Contract", "request": {"method": "GET", "url": "{{base_url}}/contracts/{{contract_id}}"}},
+        {"name": "Complete Contract", "request": {"method": "POST", "url": "{{base_url}}/contracts/{{contract_id}}/complete"}},
+        {"name": "Cancel Contract", "request": {"method": "POST", "url": "{{base_url}}/contracts/{{contract_id}}/cancel"}},
+        {"name": "List Contract Logs", "request": {"method": "GET", "url": "{{base_url}}/contracts/{{contract_id}}/logs"}}
+      ]
+    },
+    {
+      "name": "Conversations",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "List Conversations", "request": {"method": "GET", "url": "{{base_url}}/conversations?page=1"}},
+        {"name": "Get Conversation", "request": {"method": "GET", "url": "{{base_url}}/conversations/{{conversation_id}}"}},
+        {"name": "Archive Conversation", "request": {"method": "POST", "url": "{{base_url}}/conversations/{{conversation_id}}/archive"}},
+        {"name": "List Conversation Messages", "request": {"method": "GET", "url": "{{base_url}}/conversations/{{conversation_id}}/messages?page=1"}},
+        {"name": "Send Conversation Message", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"message\":\"Olá, gostaria de confirmar os detalhes do serviço.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/conversations/{{conversation_id}}/messages"}},
+        {"name": "Mark Conversation Read", "request": {"method": "POST", "url": "{{base_url}}/conversations/{{conversation_id}}/read"}},
+        {"name": "Upload Message Attachment", "request": {"method": "POST", "body": {"mode": "formdata", "formdata": [{"key": "file", "type": "file", "src": ""}]}, "url": "{{base_url}}/messages/{{message_id}}/attachments"}}
+      ]
+    },
+    {
+      "name": "Notifications",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "List Notifications", "request": {"method": "GET", "url": "{{base_url}}/notifications?unread=&page=1"}},
+        {"name": "Mark All Notifications Read", "request": {"method": "POST", "url": "{{base_url}}/notifications/read-all"}},
+        {"name": "Get Notification", "request": {"method": "GET", "url": "{{base_url}}/notifications/{{notification_id}}"}},
+        {"name": "Delete Notification", "request": {"method": "DELETE", "url": "{{base_url}}/notifications/{{notification_id}}"}},
+        {"name": "Mark Notification Read", "request": {"method": "POST", "url": "{{base_url}}/notifications/{{notification_id}}/read"}}
+      ]
+    },
+    {
+      "name": "Reviews",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "List Professional Reviews", "request": {"auth": {"type": "noauth"}, "method": "GET", "url": "{{base_url}}/professionals/{{professional_profile_id}}/reviews?page=1"}},
+        {"name": "Create Review", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"contract_id\":{{contract_id}},\"rating\":5,\"comment\":\"Excelente serviço.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/reviews"}},
+        {"name": "List My Reviews", "request": {"method": "GET", "url": "{{base_url}}/reviews/me?page=1"}},
+        {"name": "Get Review", "request": {"method": "GET", "url": "{{base_url}}/reviews/{{review_id}}"}}
+      ]
+    },
+    {
+      "name": "Reports",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "Create Report", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"report_type\":\"user\",\"reported_user_id\":{{user_id}},\"reason\":\"abuse\",\"description\":\"Descrição da ocorrência.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/reports"}},
+        {"name": "List My Reports", "request": {"method": "GET", "url": "{{base_url}}/reports/me?page=1"}},
+        {"name": "Get Report", "request": {"method": "GET", "url": "{{base_url}}/reports/{{report_id}}"}}
+      ]
+    },
+    {
+      "name": "Disputes",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "List Disputes", "request": {"method": "GET", "url": "{{base_url}}/disputes?page=1"}},
+        {"name": "Open Dispute", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"contract_id\":{{contract_id}},\"reason\":\"Serviço não entregue\",\"description\":\"O serviço não foi entregue conforme acordado.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/disputes"}},
+        {"name": "Get Dispute", "request": {"method": "GET", "url": "{{base_url}}/disputes/{{dispute_id}}"}},
+        {"name": "List Dispute Evidence", "request": {"method": "GET", "url": "{{base_url}}/disputes/{{dispute_id}}/evidence"}},
+        {"name": "Upload Dispute Evidence", "request": {"method": "POST", "body": {"mode": "formdata", "formdata": [{"key": "file", "type": "file", "src": ""}, {"key": "description", "value": "Documento de prova", "type": "text"}]}, "url": "{{base_url}}/disputes/{{dispute_id}}/evidence"}},
+        {"name": "List Dispute Messages", "request": {"method": "GET", "url": "{{base_url}}/disputes/{{dispute_id}}/messages?page=1"}},
+        {"name": "Send Dispute Message", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"message\":\"Informação adicional para análise.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/disputes/{{dispute_id}}/messages"}}
+      ]
+    },
+    {
+      "name": "Admin",
+      "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{token}}", "type": "string"}]},
+      "item": [
+        {"name": "Dashboard", "request": {"method": "GET", "url": "{{base_url}}/admin/dashboard"}},
+        {"name": "List Users", "request": {"method": "GET", "url": "{{base_url}}/admin/users?user_type=&status=&q=&page=1"}},
+        {"name": "Get User", "request": {"method": "GET", "url": "{{base_url}}/admin/users/{{user_id}}"}},
+        {"name": "Update User", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\":\"Utilizador Actualizado\",\"status\":\"active\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/users/{{user_id}}"}},
+        {"name": "Suspend User", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"reason\":\"Análise administrativa\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/users/{{user_id}}/suspend"}},
+        {"name": "Reactivate User", "request": {"method": "POST", "url": "{{base_url}}/admin/users/{{user_id}}/reactivate"}},
+        {"name": "Block User", "request": {"method": "POST", "url": "{{base_url}}/admin/users/{{user_id}}/block"}},
+        {"name": "List Categories", "request": {"method": "GET", "url": "{{base_url}}/admin/categories?status=&page=1"}},
+        {"name": "Create Category", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\":\"Nova Categoria\",\"description\":\"Descrição da categoria\",\"status\":\"active\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/categories"}},
+        {"name": "Update Category", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\":\"Categoria Actualizada\",\"status\":\"inactive\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/categories/{{category_id}}"}},
+        {"name": "Delete Category", "request": {"method": "DELETE", "url": "{{base_url}}/admin/categories/{{category_id}}"}},
+        {"name": "List Skills", "request": {"method": "GET", "url": "{{base_url}}/admin/skills?category_id=&status=&page=1"}},
+        {"name": "Create Skill", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"category_id\":{{category_id}},\"name\":\"Nova Competência\",\"status\":\"active\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/skills"}},
+        {"name": "Update Skill", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"name\":\"Competência Actualizada\",\"status\":\"inactive\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/skills/{{skill_id}}"}},
+        {"name": "Delete Skill", "request": {"method": "DELETE", "url": "{{base_url}}/admin/skills/{{skill_id}}"}},
+        {"name": "List Reports", "request": {"method": "GET", "url": "{{base_url}}/admin/reports?status=&report_type=&page=1"}},
+        {"name": "Get Admin Report", "request": {"method": "GET", "url": "{{base_url}}/admin/reports/{{report_id}}"}},
+        {"name": "Review Report", "request": {"method": "POST", "url": "{{base_url}}/admin/reports/{{report_id}}/review"}},
+        {"name": "Resolve Report", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"resolution_note\":\"Denúncia analisada e resolvida.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/reports/{{report_id}}/resolve"}},
+        {"name": "Dismiss Report", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"resolution_note\":\"Sem elementos suficientes.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/reports/{{report_id}}/dismiss"}},
+        {"name": "List Admin Disputes", "request": {"method": "GET", "url": "{{base_url}}/admin/disputes?status=&page=1"}},
+        {"name": "Get Admin Dispute", "request": {"method": "GET", "url": "{{base_url}}/admin/disputes/{{dispute_id}}"}},
+        {"name": "Assign Dispute", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"assigned_to\":{{admin_user_id}}}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/disputes/{{dispute_id}}/assign"}},
+        {"name": "Resolve Dispute", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"resolution\":\"mutual_agreement\",\"resolution_note\":\"As partes chegaram a acordo.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/disputes/{{dispute_id}}/resolve"}},
+        {"name": "List Verifications", "request": {"method": "GET", "url": "{{base_url}}/admin/verifications?status=&page=1"}},
+        {"name": "Get Verification", "request": {"method": "GET", "url": "{{base_url}}/admin/verifications/{{professional_profile_id}}"}},
+        {"name": "Approve Verification", "request": {"method": "POST", "url": "{{base_url}}/admin/verifications/{{professional_profile_id}}/approve"}},
+        {"name": "Reject Verification", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\"reason\":\"Documento ilegível.\"}", "options": {"raw": {"language": "json"}}}, "url": "{{base_url}}/admin/verifications/{{professional_profile_id}}/reject"}}
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost/api/v1", "type": "string"},
+    {"key": "token", "value": "", "type": "string"},
+    {"key": "user_id", "value": "1", "type": "string"},
+    {"key": "admin_user_id", "value": "1", "type": "string"},
+    {"key": "category_id", "value": "1", "type": "string"},
+    {"key": "skill_id", "value": "1", "type": "string"},
+    {"key": "professional_profile_id", "value": "1", "type": "string"},
+    {"key": "portfolio_item_id", "value": "1", "type": "string"},
+    {"key": "document_id", "value": "1", "type": "string"},
+    {"key": "invitation_id", "value": "1", "type": "string"},
+    {"key": "service_request_id", "value": "1", "type": "string"},
+    {"key": "attachment_id", "value": "1", "type": "string"},
+    {"key": "proposal_id", "value": "1", "type": "string"},
+    {"key": "contract_id", "value": "1", "type": "string"},
+    {"key": "conversation_id", "value": "1", "type": "string"},
+    {"key": "message_id", "value": "1", "type": "string"},
+    {"key": "notification_id", "value": "1", "type": "string"},
+    {"key": "review_id", "value": "1", "type": "string"},
+    {"key": "report_id", "value": "1", "type": "string"},
+    {"key": "dispute_id", "value": "1", "type": "string"}
+  ]
+}
