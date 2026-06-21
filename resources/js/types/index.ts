@@ -1,4 +1,4 @@
-export type UserType = 'client' | 'professional' | 'admin';
+export type UserType = 'client' | 'professional' | 'admin' | 'super_admin';
 export type UserStatus = 'pending' | 'active' | 'inactive' | 'suspended' | 'blocked';
 export type ContractStatus = 'active' | 'completed' | 'cancelled' | 'disputed';
 
@@ -70,12 +70,63 @@ export interface ProfessionalProfile {
     experience_years: number;
     base_price: string | null;
     price_type: 'hourly' | 'fixed' | 'negotiable';
-    province: string;
-    city: string;
+    province?: string;
+    city?: string;
+    location?: {
+        province: string | null;
+        city: string | null;
+        address: string | null;
+        latitude: string | null;
+        longitude: string | null;
+    };
     verification_status: 'pending' | 'under_review' | 'approved' | 'rejected' | 'expired';
     availability: 'available' | 'busy' | 'away' | 'vacation' | 'unavailable';
     average_rating: string;
     total_reviews: number;
+    user?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    } | null;
+    categories?: Category[];
+    skills?: Skill[];
+    portfolio_items?: PortfolioItem[];
+    created_at?: string;
+}
+
+export interface PortfolioItem {
+    id: number;
+    title: string;
+    description: string | null;
+    file_path?: string;
+    file_name?: string;
+    file_type?: string | null;
+}
+
+export interface Review {
+    id: number;
+    contract_id: number;
+    reviewer_id: number;
+    reviewed_id: number;
+    rating: number;
+    comment: string | null;
+    reviewer?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    };
+    reviewed?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    };
+    contract?: {
+        id: number;
+        status: ContractStatus;
+        service_request_id: number;
+    };
+    created_at: string;
+    updated_at?: string;
 }
 
 export interface ServiceRequest {
@@ -91,6 +142,32 @@ export interface ServiceRequest {
     status: 'draft' | 'published' | 'receiving_proposals' | 'in_progress' | 'completed' | 'cancelled';
     province: string | null;
     city: string | null;
+    address?: string | null;
+    latitude?: string | null;
+    longitude?: string | null;
+    category?: Category | null;
+    client?: {
+        id: number | null;
+        name: string | null;
+        avatar: string | null;
+    } | null;
+    attachments_count?: number;
+    proposals_count?: number;
+    attachments?: ServiceRequestAttachment[];
+    deadline_at?: string | null;
+    visibility?: 'public' | 'private' | 'invited_only';
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface ServiceRequestAttachment {
+    id: number;
+    service_request_id: number;
+    file_path: string;
+    file_url: string | null;
+    file_name: string;
+    file_type: string | null;
+    file_size: number | null;
     created_at: string;
 }
 
@@ -102,27 +179,199 @@ export interface Proposal {
     delivery_days: number | null;
     message: string | null;
     status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'expired';
+    accepted_at?: string | null;
+    rejected_at?: string | null;
+    withdrawn_at?: string | null;
+    service_request?: {
+        id: number;
+        title: string;
+        status: ServiceRequest['status'];
+        province: string | null;
+        city: string | null;
+        category?: Category | null;
+    };
+    professional_profile?: {
+        id: number;
+        headline: string | null;
+        availability: ProfessionalProfile['availability'];
+        average_rating: string;
+        user?: {
+            id: number;
+            name: string;
+            avatar: string | null;
+        };
+    };
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface Contract {
     id: number;
     service_request_id: number;
+    proposal_id?: number;
     client_id: number;
     professional_profile_id: number;
     amount: string;
+    platform_fee?: string;
+    professional_amount?: string;
     status: ContractStatus;
     started_at: string | null;
     completed_at: string | null;
+    cancelled_at?: string | null;
+    service_request?: {
+        id: number;
+        title: string;
+        status: ServiceRequest['status'];
+        category?: Category | null;
+    };
+    proposal?: {
+        id: number;
+        status: Proposal['status'];
+        amount: string;
+    };
+    client?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    };
+    professional_profile?: {
+        id: number;
+        headline: string | null;
+        availability?: ProfessionalProfile['availability'];
+        user?: {
+            id: number | null;
+            name: string | null;
+            avatar: string | null;
+        };
+    };
+    conversation?: {
+        id: number;
+    } | null;
+    status_logs_count?: number;
+    created_at?: string;
+    updated_at?: string;
 }
+
+export interface ContractStatusLog {
+    id: number;
+    old_status: ContractStatus | null;
+    new_status: ContractStatus;
+    note: string | null;
+    changed_by?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    };
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface Conversation {
+    id: number;
+    service_request_id: number;
+    contract_id: number | null;
+    client_id: number;
+    professional_profile_id: number;
+    status: 'active' | 'archived';
+    messages_count: number;
+    service_request?: {
+        id: number;
+        title: string;
+        status: ServiceRequest['status'];
+        category?: Category | null;
+    };
+    contract?: {
+        id: number;
+        status: ContractStatus;
+        amount: string;
+    } | null;
+    client?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    };
+    professional_profile?: {
+        id: number;
+        headline: string | null;
+        availability?: ProfessionalProfile['availability'];
+        user?: {
+            id: number | null;
+            name: string | null;
+            avatar: string | null;
+        };
+    };
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface MessageAttachment {
+    id: number;
+    message_id: number;
+    file_path: string;
+    file_url: string | null;
+    file_name: string;
+    file_type: string | null;
+    file_size: number | null;
+    created_at: string;
+}
+
+export interface ChatMessage {
+    id: number;
+    conversation_id: number;
+    sender_id: number;
+    message: string;
+    message_type: 'text' | 'image' | 'file' | 'system';
+    read_at: string | null;
+    sender?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    };
+    attachments?: MessageAttachment[];
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface ConversationSummary {
+    conversation: Conversation;
+    lastMessage: ChatMessage | null;
+    unreadCount: number;
+}
+
+export interface ProfessionalInvitation {
+    id: number;
+    message: string | null;
+    status: 'pending' | 'accepted' | 'declined';
+    declined_at: string | null;
+    service_request?: {
+        id: number;
+        title: string;
+        status: ServiceRequest['status'];
+        province: string | null;
+        city: string | null;
+    };
+    client?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    };
+    created_at: string;
+    updated_at?: string;
+}
+
+export type NotificationType = 'proposal_received' | 'proposal_accepted' | 'proposal_rejected' | 'contract_created' | 'contract_completed' | 'contract_cancelled' | 'new_message' | 'verification_approved' | 'verification_rejected' | 'review_received' | 'dispute_opened' | 'dispute_resolved' | 'system';
 
 export interface Notification {
     id: number;
-    type: string;
+    user_id: number;
+    type: NotificationType;
     title: string;
     body: string | null;
     data: Record<string, unknown> | null;
     read_at: string | null;
+    is_read: boolean;
     created_at: string;
+    updated_at?: string;
 }
 
 export interface Report {

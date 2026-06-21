@@ -122,6 +122,98 @@ test('invalid credentials return 401', function () {
         ->assertJsonPath('message', 'Credenciais inválidas.');
 });
 
+test('suspended user cannot login', function () {
+    $user = userForLogin([
+        'status' => UserStatus::Suspended,
+    ]);
+
+    $response = $this->postJson('/api/v1/auth/login', [
+        'identifier' => $user->email,
+        'password' => 'password123',
+    ]);
+
+    $response
+        ->assertForbidden()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', 'A sua conta está suspensa. Contacte o suporte.');
+
+    expect($user->fresh()->tokens()->count())->toBe(0);
+});
+
+test('blocked user cannot login', function () {
+    $user = userForLogin([
+        'status' => UserStatus::Blocked,
+    ]);
+
+    $response = $this->postJson('/api/v1/auth/login', [
+        'identifier' => $user->email,
+        'password' => 'password123',
+    ]);
+
+    $response
+        ->assertForbidden()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', 'A sua conta está bloqueada. Contacte o suporte.');
+
+    expect($user->fresh()->tokens()->count())->toBe(0);
+});
+
+test('suspended user with existing token cannot access protected api', function () {
+    $user = userForLogin();
+    $token = $user->createToken('test-token')->plainTextToken;
+    $user->update(['status' => UserStatus::Suspended]);
+
+    $response = $this
+        ->withToken($token)
+        ->getJson('/api/v1/auth/me');
+
+    $response
+        ->assertForbidden()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', 'A sua conta está suspensa.');
+
+    expect($user->fresh()->tokens()->count())->toBe(0);
+});
+
+test('blocked user with existing token cannot access protected api', function () {
+    $user = userForLogin();
+    $token = $user->createToken('test-token')->plainTextToken;
+    $user->update(['status' => UserStatus::Blocked]);
+
+    $response = $this
+        ->withToken($token)
+        ->getJson('/api/v1/auth/me');
+
+    $response
+        ->assertForbidden()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', 'A sua conta está bloqueada.');
+
+    expect($user->fresh()->tokens()->count())->toBe(0);
+});
+
+test('active user can login and access protected api', function () {
+    $user = userForLogin();
+
+    $loginResponse = $this->postJson('/api/v1/auth/login', [
+        'identifier' => $user->email,
+        'password' => 'password123',
+    ]);
+
+    $loginResponse
+        ->assertSuccessful()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.user.id', $user->id);
+
+    $token = $loginResponse->json('data.token');
+
+    $this
+        ->withToken($token)
+        ->getJson('/api/v1/auth/me')
+        ->assertSuccessful()
+        ->assertJsonPath('data.user.id', $user->id);
+});
+
 /**
  * @param  array<string, mixed>  $overrides
  * @return array<string, mixed>

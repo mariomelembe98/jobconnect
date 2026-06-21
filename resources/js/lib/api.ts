@@ -1,17 +1,6 @@
 import { API_BASE_URL } from './constants';
+import { browserTokenStore, type TokenStore } from './token-store';
 import type { ApiEnvelope } from '../types';
-
-export interface TokenStore {
-    get(): string | null;
-    set(token: string): void;
-    clear(): void;
-}
-
-export const browserTokenStore: TokenStore = {
-    get: () => (typeof window === 'undefined' ? null : window.sessionStorage.getItem('proconnect_token')),
-    set: (token) => window.sessionStorage.setItem('proconnect_token', token),
-    clear: () => window.sessionStorage.removeItem('proconnect_token'),
-};
 
 export class ApiError extends Error {
     constructor(

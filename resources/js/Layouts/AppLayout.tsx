@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 
 import { BrandMark } from '../Components/BrandMark';
 import { Button } from '../Components/ui/Button';
+import { initials } from '../lib/formatters';
 import { cn } from '../lib/utils';
 
 export type NavigationIcon = 'home' | 'briefcase' | 'search' | 'chat' | 'bell' | 'user' | 'file' | 'users' | 'grid' | 'shield';
@@ -21,6 +22,7 @@ interface AppLayoutProps {
     navigation: NavigationItem[];
     sectionLabel: string;
     actions?: ReactNode;
+    accountName?: string;
     admin?: boolean;
 }
 
@@ -41,9 +43,10 @@ function NavigationGlyph({ icon }: { icon: NavigationIcon }) {
     return <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[icon]}</svg>;
 }
 
-export function AppLayout({ children, title, description, navigation, sectionLabel, actions, admin = false }: AppLayoutProps) {
+export function AppLayout({ children, title, description, navigation, sectionLabel, actions, accountName, admin = false }: AppLayoutProps) {
     const { url } = usePage();
     const [menuOpen, setMenuOpen] = useState(false);
+    const avatarLabel = accountName ? initials(accountName) : 'PC';
 
     const navContent = (
         <>
@@ -92,11 +95,11 @@ export function AppLayout({ children, title, description, navigation, sectionLab
                             {description ? <p className="hidden truncate text-sm text-slate-500 sm:block">{description}</p> : null}
                         </div>
                         {actions}
-                        <button className="relative flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" aria-label="Notificações">
+                        <Link href="/notifications" className="relative flex size-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50" aria-label="Notificações">
                             <NavigationGlyph icon="bell" />
                             <span className="absolute right-2 top-2 size-2 rounded-full bg-brand-500 ring-2 ring-white" />
-                        </button>
-                        <div className="flex size-10 items-center justify-center rounded-xl bg-brand-100 text-sm font-bold text-brand-700">PC</div>
+                        </Link>
+                        <div className="flex size-10 items-center justify-center rounded-xl bg-brand-100 text-sm font-bold text-brand-700">{avatarLabel}</div>
                     </div>
                 </header>
                 <main className="mx-auto w-full max-w-[96rem] px-page py-6 sm:px-8 sm:py-8">{children}</main>

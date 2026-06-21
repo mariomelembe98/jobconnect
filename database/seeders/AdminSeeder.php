@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use RuntimeException;
+use Spatie\Permission\Models\Role;
 
 class AdminSeeder extends Seeder
 {
@@ -31,7 +32,7 @@ class AdminSeeder extends Seeder
             ],
         );
 
-        if (method_exists($user, 'assignRole') && class_exists(\Spatie\Permission\Models\Role::class)) {
+        if (method_exists($user, 'assignRole') && class_exists(Role::class)) {
             $user->assignRole('super_admin');
         }
     }
@@ -57,7 +58,7 @@ class AdminSeeder extends Seeder
         }
 
         return [
-            'name' => $credentials['name'] ?: 'Tempo Connect Admin',
+            'name' => $credentials['name'] ?: 'Admin',
             'email' => $credentials['email'] ?: 'admin@tempoconnect.local',
             'phone' => $credentials['phone'] ?: '+258840000000',
             'password' => $credentials['password'] ?: 'password',

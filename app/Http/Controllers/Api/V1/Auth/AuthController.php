@@ -53,6 +53,13 @@ class AuthController extends Controller
             );
         }
 
+        if ($user->status !== UserStatus::Active) {
+            return ApiResponse::error(
+                message: $this->inactiveAccountMessage($user->status),
+                status: JsonResponse::HTTP_FORBIDDEN,
+            );
+        }
+
         return ApiResponse::success(
             data: $this->tokenPayload($user),
             message: 'Sessão iniciada com sucesso.',
@@ -94,5 +101,14 @@ class AuthController extends Controller
         $column = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
 
         return User::where($column, $identifier)->first();
+    }
+
+    private function inactiveAccountMessage(UserStatus $status): string
+    {
+        return match ($status) {
+            UserStatus::Suspended => 'A sua conta está suspensa. Contacte o suporte.',
+            UserStatus::Blocked => 'A sua conta está bloqueada. Contacte o suporte.',
+            default => 'A sua conta não está activa.',
+        };
     }
 }

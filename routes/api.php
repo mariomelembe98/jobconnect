@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V1\Lookup\LocationController;
 use App\Http\Controllers\Api\V1\Lookup\SkillController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\NotificationController;
+use App\Http\Controllers\Api\V1\Professional\DashboardController as ProfessionalDashboardController;
 use App\Http\Controllers\Api\V1\Professional\DocumentController;
 use App\Http\Controllers\Api\V1\Professional\PortfolioController;
 use App\Http\Controllers\Api\V1\Professional\ProfileController as ProfessionalProfileController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\ServiceRequestController;
 use App\Http\Controllers\Api\V1\UserProfileController;
+use App\Http\Middleware\EnsureAuthenticatedUserIsActive;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -49,13 +51,13 @@ Route::prefix('v1')->group(function (): void {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
 
-        Route::middleware('auth:sanctum')->group(function (): void {
+        Route::middleware(['auth:sanctum', EnsureAuthenticatedUserIsActive::class])->group(function (): void {
             Route::post('logout', [AuthController::class, 'logout']);
             Route::get('me', [AuthController::class, 'me']);
         });
     });
 
-    Route::middleware('auth:sanctum')->prefix('users/me')->group(function (): void {
+    Route::middleware(['auth:sanctum', EnsureAuthenticatedUserIsActive::class])->prefix('users/me')->group(function (): void {
         Route::get('/', [UserProfileController::class, 'show']);
         Route::patch('/', [UserProfileController::class, 'update']);
         Route::patch('location', [UserProfileController::class, 'updateLocation']);
@@ -64,7 +66,7 @@ Route::prefix('v1')->group(function (): void {
 
     Route::get('service-requests/{serviceRequest}', [ServiceRequestController::class, 'show']);
 
-    Route::middleware('auth:sanctum')->group(function (): void {
+    Route::middleware(['auth:sanctum', EnsureAuthenticatedUserIsActive::class])->group(function (): void {
         Route::get('service-requests', [ServiceRequestController::class, 'index']);
         Route::post('service-requests', [ServiceRequestController::class, 'store']);
         Route::patch('service-requests/{serviceRequest}', [ServiceRequestController::class, 'update']);
@@ -115,7 +117,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('contracts/{contract}/logs', [ContractController::class, 'logs']);
     });
 
-    Route::middleware(['auth:sanctum', EnsureUserIsAdmin::class])->prefix('admin')->group(function (): void {
+    Route::middleware(['auth:sanctum', EnsureAuthenticatedUserIsActive::class, EnsureUserIsAdmin::class])->prefix('admin')->group(function (): void {
         Route::get('dashboard', AdminDashboardController::class);
         Route::get('users', [AdminUserController::class, 'index']);
         Route::get('users/{user}', [AdminUserController::class, 'show']);
@@ -149,7 +151,8 @@ Route::prefix('v1')->group(function (): void {
             ->missing(fn () => AdminVerificationController::missingResponse());
     });
 
-    Route::middleware('auth:sanctum')->prefix('professional')->group(function (): void {
+    Route::middleware(['auth:sanctum', EnsureAuthenticatedUserIsActive::class])->prefix('professional')->group(function (): void {
+        Route::get('dashboard', ProfessionalDashboardController::class);
         Route::post('profile', [ProfessionalProfileController::class, 'store']);
         Route::get('profile', [ProfessionalProfileController::class, 'show']);
         Route::patch('profile', [ProfessionalProfileController::class, 'update']);

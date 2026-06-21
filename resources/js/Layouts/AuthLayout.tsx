@@ -2,6 +2,8 @@ import { Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
 import { BrandMark } from '../Components/BrandMark';
+import { LoadingSkeleton } from '../Components/ui/LoadingSkeleton';
+import { useGuestSessionRedirect } from '../lib/auth';
 import type { AppPageProps } from '../types';
 
 interface AuthLayoutProps {
@@ -12,6 +14,27 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ children, title, description }: AuthLayoutProps) {
     const { appName } = usePage<AppPageProps>().props;
+    const { isCheckingSession } = useGuestSessionRedirect();
+
+    if (isCheckingSession) {
+        return (
+            <main className="grid min-h-screen place-items-center bg-gradient-to-br from-slate-50 via-white to-brand-50 px-6">
+                <div className="grid w-full max-w-sm gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                    <div className="flex items-center gap-3">
+                        <LoadingSkeleton className="size-11 rounded-2xl" />
+                        <div className="grid flex-1 gap-2">
+                            <LoadingSkeleton className="h-4 w-24" />
+                            <LoadingSkeleton className="h-3 w-36" />
+                        </div>
+                    </div>
+                    <LoadingSkeleton className="h-12 w-full rounded-xl" />
+                    <LoadingSkeleton className="h-12 w-full rounded-xl" />
+                    <p className="text-center text-sm text-slate-500">A verificar a sua sessão...</p>
+                    <p className="text-center text-xs text-slate-400">A carregar o acesso seguro.</p>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className="grid min-h-screen bg-white lg:grid-cols-[minmax(0,1.05fr)_minmax(30rem,0.95fr)]">
