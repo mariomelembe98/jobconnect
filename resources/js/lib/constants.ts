@@ -34,6 +34,35 @@ export const STATUS_LABELS: Record<string, string> = {
     withdrawn: 'Retirada',
 };
 
+export const ACTIVITY_ACTION_LABELS: Record<string, string> = {
+    user_login: 'Entrada no sistema',
+    user_logout: 'Saída do sistema',
+    user_blocked: 'Utilizador bloqueado',
+    user_suspended: 'Utilizador suspenso',
+    service_request_created: 'Pedido criado',
+    service_request_cancelled: 'Pedido cancelado',
+    proposal_submitted: 'Proposta enviada',
+    proposal_accepted: 'Proposta aceite',
+    contract_completed: 'Contrato concluído',
+    contract_cancelled: 'Contrato cancelado',
+    report_created: 'Denúncia criada',
+    dispute_created: 'Disputa criada',
+    verification_approved: 'Verificação aprovada',
+    verification_rejected: 'Verificação rejeitada',
+};
+
+export const ACTIVITY_MODULE_LABELS: Record<string, string> = {
+    auth: 'Autenticação',
+    users: 'Utilizadores',
+    service_requests: 'Pedidos',
+    proposals: 'Propostas',
+    contracts: 'Contratos',
+    reports: 'Denúncias',
+    disputes: 'Disputas',
+    verifications: 'Verificações',
+    security: 'Segurança',
+};
+
 export const REPORT_REASON_LABELS: Record<string, string> = {
     fraud: 'Fraude',
     abuse: 'Abuso',

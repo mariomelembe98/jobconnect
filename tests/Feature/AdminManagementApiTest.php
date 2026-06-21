@@ -11,6 +11,7 @@ use App\Enums\ServiceRequestStatus;
 use App\Enums\UserStatus;
 use App\Enums\UserType;
 use App\Enums\VerificationStatus;
+use App\Models\ActivityLog;
 use App\Models\Category;
 use App\Models\Contract;
 use App\Models\Dispute;
@@ -266,6 +267,78 @@ test('admin can resolve dispute and contract becomes completed', function () {
 
     expect($contract->fresh()->status)->toBe(ContractStatus::Completed)
         ->and($dispute->fresh()->resolved_at)->not->toBeNull();
+});
+
+test('admin can list activity logs with filters and pagination', function () {
+    $admin = sprintSixAdmin();
+    $client = sprintSixClient();
+
+    ActivityLog::query()->create([
+        'user_id' => $client->id,
+        'action' => 'service_request_created',
+        'module' => 'service_requests',
+        'subject_type' => User::class,
+        'subject_id' => $client->id,
+        'ip_address' => '127.0.0.1',
+        'user_agent' => 'Pest',
+        'metadata' => ['safe' => true],
+        'created_at' => now()->subDay(),
+        'updated_at' => now()->subDay(),
+    ]);
+
+    ActivityLog::query()->create([
+        'user_id' => $admin->id,
+        'action' => 'user_blocked',
+        'module' => 'users',
+        'subject_type' => User::class,
+        'subject_id' => $client->id,
+        'ip_address' => '127.0.0.2',
+        'user_agent' => 'Pest',
+        'metadata' => ['safe' => true],
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Sanctum::actingAs($admin);
+
+    $this->getJson('/api/v1/admin/activity-logs?action=user_blocked&module=users&user_id='.$admin->id)
+        ->assertSuccessful()
+        ->assertJsonPath('success', true)
+        ->assertJsonCount(1, 'data.activity_logs')
+        ->assertJsonPath('data.activity_logs.0.user_id', $admin->id)
+        ->assertJsonPath('data.activity_logs.0.user_name', $admin->name)
+        ->assertJsonPath('data.pagination.per_page', 25);
+});
+
+test('admin can view activity log detail', function () {
+    $admin = sprintSixAdmin();
+    $log = ActivityLog::query()->create([
+        'user_id' => $admin->id,
+        'action' => 'contract_completed',
+        'module' => 'contracts',
+        'subject_type' => Contract::class,
+        'subject_id' => 99,
+        'ip_address' => '127.0.0.1',
+        'user_agent' => 'Pest',
+        'metadata' => ['contract_id' => 99],
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Sanctum::actingAs($admin);
+
+    $this->getJson("/api/v1/admin/activity-logs/{$log->id}")
+        ->assertSuccessful()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.activity_log.id', $log->id)
+        ->assertJsonPath('data.activity_log.user_name', $admin->name)
+        ->assertJsonPath('data.activity_log.metadata.contract_id', 99);
+});
+
+test('non admin cannot access activity logs', function () {
+    Sanctum::actingAs(sprintSixClient());
+
+    $this->getJson('/api/v1/admin/activity-logs')->assertForbidden();
 });
 
 function sprintSixAdmin(): User

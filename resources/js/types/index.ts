@@ -536,3 +536,16 @@ export interface DisputeMessage {
     } | null;
     created_at: string;
 }
+
+export interface ActivityLog {
+    id: number;
+    user_id: number | null;
+    user_name: string | null;
+    action: string;
+    module: string;
+    subject_type: string | null;
+    subject_id: number | null;
+    ip_address: string | null;
+    created_at: string;
+    metadata: Record<string, unknown> | null;
+}

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\ActivityLogController as AdminActivityLogController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\V1\Admin\DisputeController as AdminDisputeController;
@@ -119,6 +120,8 @@ Route::prefix('v1')->group(function (): void {
 
     Route::middleware(['auth:sanctum', EnsureAuthenticatedUserIsActive::class, EnsureUserIsAdmin::class])->prefix('admin')->group(function (): void {
         Route::get('dashboard', AdminDashboardController::class);
+        Route::get('activity-logs', [AdminActivityLogController::class, 'index']);
+        Route::get('activity-logs/{activityLog}', [AdminActivityLogController::class, 'show']);
         Route::get('users', [AdminUserController::class, 'index']);
         Route::get('users/{user}', [AdminUserController::class, 'show']);
         Route::patch('users/{user}', [AdminUserController::class, 'update']);

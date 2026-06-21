@@ -41,6 +41,7 @@ Route::get('/professional/jobs/{serviceRequest}', fn (string $serviceRequest) =>
     'serviceRequestId' => (int) $serviceRequest,
 ]))->whereNumber('serviceRequest')->name('professional.jobs.show');
 Route::get('/admin', fn () => Inertia::render('Admin/Dashboard'))->name('admin.dashboard');
+Route::get('/admin/activity-logs', fn () => Inertia::render('Admin/ActivityLogs'))->name('admin.activity_logs.index');
 Route::get('/admin/users', fn () => Inertia::render('Admin/Users'))->name('admin.users.index');
 Route::get('/admin/verifications', fn () => Inertia::render('Admin/Verifications'))->name('admin.verifications.index');
 Route::get('/admin/reports', fn () => Inertia::render('Admin/Reports'))->name('admin.reports.index');

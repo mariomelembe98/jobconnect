@@ -7,6 +7,7 @@ import { useProtectedSession } from '../lib/auth';
 
 const navigation: NavigationItem[] = [
     { label: 'Painel', href: '/admin', icon: 'grid' },
+    { label: 'Registos de actividade', href: '/admin/activity-logs', icon: 'file' },
     { label: 'Utilizadores', href: '/admin/users', icon: 'users' },
     { label: 'Verificações', href: '/admin/verifications', icon: 'shield' },
     { label: 'Denúncias', href: '/admin/reports', icon: 'bell' },
