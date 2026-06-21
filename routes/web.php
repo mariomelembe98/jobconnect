@@ -3,11 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', fn () => Inertia::render('Auth/Login'));
+Route::get('/', fn () => Inertia::render('Landing'))->name('home');
+Route::get('/help', fn () => Inertia::render('Help'))->name('help');
+Route::get('/terms', fn () => Inertia::render('Legal/Terms'))->name('terms');
+Route::get('/privacy', fn () => Inertia::render('Legal/Privacy'))->name('privacy');
 
 Route::get('/login', fn () => Inertia::render('Auth/Login'))->name('login');
 Route::get('/register', fn () => Inertia::render('Auth/Register'))->name('register');
 Route::get('/reviews/me', fn () => Inertia::render('Reviews/Index'))->name('reviews.me');
+Route::get('/settings', fn () => Inertia::render('Settings'))->name('settings');
 Route::get('/reports', fn () => Inertia::render('Reports/Index'))->name('reports.index');
 Route::get('/disputes', fn () => Inertia::render('Disputes/Index'))->name('disputes.index');
 Route::get('/disputes/{dispute}', fn (string $dispute) => Inertia::render('Disputes/Show', [

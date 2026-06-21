@@ -11,9 +11,13 @@ test('frontend foundation routes render their inertia pages', function (string $
             ->has('auth.user')
         );
 })->with([
-    'home' => ['/', 'Auth/Login'],
+    'home' => ['/', 'Landing'],
+    'help' => ['/help', 'Help'],
+    'terms' => ['/terms', 'Legal/Terms'],
+    'privacy' => ['/privacy', 'Legal/Privacy'],
     'login' => ['/login', 'Auth/Login'],
     'register' => ['/register', 'Auth/Register'],
+    'settings' => ['/settings', 'Settings'],
     'my reviews' => ['/reviews/me', 'Reviews/Index'],
     'reports' => ['/reports', 'Reports/Index'],
     'disputes' => ['/disputes', 'Disputes/Index'],

@@ -12,6 +12,7 @@ const navigation: NavigationItem[] = [
     { label: 'Denúncias', href: '/admin/reports', icon: 'bell' },
     { label: 'Disputas', href: '/admin/disputes', icon: 'chat' },
     { label: 'Notificações', href: '/notifications', icon: 'bell' },
+    { label: 'Definições', href: '/settings', icon: 'user' },
 ];
 
 interface AdminLayoutProps {
