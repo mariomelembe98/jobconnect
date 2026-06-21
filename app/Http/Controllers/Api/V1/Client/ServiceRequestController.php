@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Client;
 
+use App\Enums\ServiceRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ServiceRequestListResource;
 use App\Models\ServiceRequest as ServiceRequestModel;
@@ -19,8 +20,28 @@ class ServiceRequestController extends Controller
 
         $serviceRequests = ServiceRequestModel::query()
             ->with(['client', 'category'])
-            ->withCount('attachments')
+            ->withCount(['attachments', 'proposals'])
             ->where('client_id', $request->user()->id)
+            ->when($request->filled('status'), function ($query) use ($request) {
+                $status = $request->string('status')->toString();
+
+                if ($status === ServiceRequestStatus::Published->value) {
+                    $query->whereIn('status', [
+                        ServiceRequestStatus::Published->value,
+                        ServiceRequestStatus::ReceivingProposals->value,
+                    ]);
+
+                    return;
+                }
+
+                if (in_array($status, [
+                    ServiceRequestStatus::InProgress->value,
+                    ServiceRequestStatus::Completed->value,
+                    ServiceRequestStatus::Cancelled->value,
+                ], true)) {
+                    $query->where('status', $status);
+                }
+            })
             ->latest()
             ->paginate(15)
             ->withQueryString();

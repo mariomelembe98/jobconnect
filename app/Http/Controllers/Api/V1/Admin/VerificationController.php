@@ -9,6 +9,7 @@ use App\Http\Requests\Api\V1\Admin\ApproveVerificationRequest;
 use App\Http\Requests\Api\V1\Admin\RejectVerificationRequest;
 use App\Http\Resources\AdminVerificationResource;
 use App\Models\ProfessionalProfile;
+use App\Support\ActivityLogService;
 use App\Support\ApiResponse;
 use App\Support\NotificationService;
 use Illuminate\Http\JsonResponse;
@@ -64,7 +65,7 @@ class VerificationController extends Controller
         );
     }
 
-    public function approve(ApproveVerificationRequest $request, ProfessionalProfile $professionalProfile): JsonResponse
+    public function approve(ApproveVerificationRequest $request, ProfessionalProfile $professionalProfile, ActivityLogService $activityLogs): JsonResponse
     {
         $admin = $request->user();
         $reviewedAt = now();
@@ -96,6 +97,8 @@ class VerificationController extends Controller
             );
         }
 
+        $activityLogs->logVerificationApproved($admin, $professionalProfile->fresh());
+
         return ApiResponse::success(
             data: [
                 'verification' => new AdminVerificationResource(
@@ -106,7 +109,7 @@ class VerificationController extends Controller
         );
     }
 
-    public function reject(RejectVerificationRequest $request, ProfessionalProfile $professionalProfile): JsonResponse
+    public function reject(RejectVerificationRequest $request, ProfessionalProfile $professionalProfile, ActivityLogService $activityLogs): JsonResponse
     {
         $admin = $request->user();
         $reason = $request->validated('reason');
@@ -139,6 +142,8 @@ class VerificationController extends Controller
                 ],
             );
         }
+
+        $activityLogs->logVerificationRejected($admin, $professionalProfile->fresh());
 
         return ApiResponse::success(
             data: [

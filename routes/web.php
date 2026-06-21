@@ -8,6 +8,11 @@ Route::get('/', fn () => Inertia::render('Auth/Login'));
 Route::get('/login', fn () => Inertia::render('Auth/Login'))->name('login');
 Route::get('/register', fn () => Inertia::render('Auth/Register'))->name('register');
 Route::get('/reviews/me', fn () => Inertia::render('Reviews/Index'))->name('reviews.me');
+Route::get('/reports', fn () => Inertia::render('Reports/Index'))->name('reports.index');
+Route::get('/disputes', fn () => Inertia::render('Disputes/Index'))->name('disputes.index');
+Route::get('/disputes/{dispute}', fn (string $dispute) => Inertia::render('Disputes/Show', [
+    'disputeId' => (int) $dispute,
+]))->whereNumber('dispute')->name('disputes.show');
 Route::get('/notifications', fn () => Inertia::render('Notifications/Index'))->name('notifications.index');
 Route::get('/conversations', fn () => Inertia::render('Conversations/Index'))->name('conversations.index');
 Route::get('/conversations/{conversation}', fn (string $conversation) => Inertia::render('Conversations/Show', [
@@ -23,6 +28,7 @@ Route::get('/professionals/{professionalProfile}', fn (string $professionalProfi
 ]))->whereNumber('professionalProfile')->name('professionals.show');
 Route::get('/client', fn () => Inertia::render('Client/Dashboard'))->name('client.dashboard');
 Route::get('/client/service-requests/create', fn () => Inertia::render('Client/ServiceRequests/Create'))->name('client.service_requests.create');
+Route::get('/client/service-requests', fn () => Inertia::render('Client/ServiceRequests/Index'))->name('client.service_requests.index');
 Route::get('/client/service-requests/{serviceRequest}', fn (string $serviceRequest) => Inertia::render('Client/ServiceRequests/Show', [
     'serviceRequestId' => (int) $serviceRequest,
 ]))->whereNumber('serviceRequest')->name('client.service_requests.show');
@@ -35,3 +41,7 @@ Route::get('/professional/jobs/{serviceRequest}', fn (string $serviceRequest) =>
     'serviceRequestId' => (int) $serviceRequest,
 ]))->whereNumber('serviceRequest')->name('professional.jobs.show');
 Route::get('/admin', fn () => Inertia::render('Admin/Dashboard'))->name('admin.dashboard');
+Route::get('/admin/users', fn () => Inertia::render('Admin/Users'))->name('admin.users.index');
+Route::get('/admin/verifications', fn () => Inertia::render('Admin/Verifications'))->name('admin.verifications.index');
+Route::get('/admin/reports', fn () => Inertia::render('Admin/Reports'))->name('admin.reports.index');
+Route::get('/admin/disputes', fn () => Inertia::render('Admin/Disputes'))->name('admin.disputes.index');

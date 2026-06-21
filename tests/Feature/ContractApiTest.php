@@ -53,7 +53,8 @@ test('accepting proposal returns contract data', function () {
         ->assertJsonPath('data.contract.amount', '2000.00')
         ->assertJsonPath('data.contract.platform_fee', '200.00')
         ->assertJsonPath('data.contract.professional_amount', '1800.00')
-        ->assertJsonPath('data.contract.proposal_id', $proposal->id);
+        ->assertJsonPath('data.contract.proposal_id', $proposal->id)
+        ->assertJsonPath('data.contract.conversation.id', $response->json('data.conversation.id'));
 });
 
 test('contract has correct amount platform fee professional amount', function () {

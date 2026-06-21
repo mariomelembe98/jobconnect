@@ -1,8 +1,11 @@
 <?php
 
+use App\Enums\ProposalStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\UserType;
 use App\Models\Category;
+use App\Models\ProfessionalProfile;
+use App\Models\Proposal;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestAttachment;
 use App\Models\User;
@@ -53,6 +56,16 @@ test('client can list own service requests', function () {
     $client = serviceRequestClientUser();
     $otherClient = serviceRequestClientUser();
     $ownOne = createServiceRequest($client, ['title' => 'Pedido um']);
+    $professional = serviceRequestProfessionalUser();
+    $profile = ProfessionalProfile::factory()->for($professional)->create();
+    Proposal::create([
+        'service_request_id' => $ownOne->id,
+        'professional_profile_id' => $profile->id,
+        'amount' => '850.00',
+        'delivery_days' => 5,
+        'message' => 'Posso ajudar com este serviço.',
+        'status' => ProposalStatus::Pending,
+    ]);
     createServiceRequest($otherClient, ['title' => 'Pedido de outra pessoa']);
     Sanctum::actingAs($client);
 
@@ -64,7 +77,54 @@ test('client can list own service requests', function () {
         ->assertJsonPath('message', 'Pedidos de serviço carregados com sucesso.')
         ->assertJsonCount(1, 'data.service_requests')
         ->assertJsonPath('data.service_requests.0.id', $ownOne->id)
-        ->assertJsonPath('data.service_requests.0.title', 'Pedido um');
+        ->assertJsonPath('data.service_requests.0.title', 'Pedido um')
+        ->assertJsonPath('data.service_requests.0.proposals_count', 1);
+});
+
+test('client can filter own service requests by status', function () {
+    $client = serviceRequestClientUser();
+    createServiceRequest($client, [
+        'title' => 'Pedido publicado',
+        'status' => ServiceRequestStatus::Published,
+    ]);
+    $completed = createServiceRequest($client, [
+        'title' => 'Pedido concluído',
+        'status' => ServiceRequestStatus::Completed,
+    ]);
+    Sanctum::actingAs($client);
+
+    $response = $this->getJson('/api/v1/client/service-requests?status=completed');
+
+    $response
+        ->assertSuccessful()
+        ->assertJsonPath('success', true)
+        ->assertJsonCount(1, 'data.service_requests')
+        ->assertJsonPath('data.service_requests.0.id', $completed->id)
+        ->assertJsonPath('data.service_requests.0.status', 'completed');
+});
+
+test('client published filter includes requests receiving proposals', function () {
+    $client = serviceRequestClientUser();
+    $published = createServiceRequest($client, [
+        'title' => 'Pedido publicado',
+        'status' => ServiceRequestStatus::Published,
+    ]);
+    $receivingProposals = createServiceRequest($client, [
+        'title' => 'Pedido a receber propostas',
+        'status' => ServiceRequestStatus::ReceivingProposals,
+    ]);
+    Sanctum::actingAs($client);
+
+    $response = $this->getJson('/api/v1/client/service-requests?status=published');
+
+    $response
+        ->assertSuccessful()
+        ->assertJsonPath('success', true)
+        ->assertJsonCount(2, 'data.service_requests');
+
+    $ids = collect($response->json('data.service_requests'))->pluck('id')->all();
+
+    expect($ids)->toContain($published->id, $receivingProposals->id);
 });
 
 test('professional can list public service requests', function () {

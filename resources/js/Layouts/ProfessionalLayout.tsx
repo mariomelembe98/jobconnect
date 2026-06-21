@@ -12,6 +12,8 @@ const navigation: NavigationItem[] = [
     { label: 'Contratos', href: '/contracts', icon: 'briefcase' },
     { label: 'Mensagens', href: '/conversations', icon: 'chat' },
     { label: 'Notificações', href: '/notifications', icon: 'bell' },
+    { label: 'Denúncias', href: '/reports', icon: 'file' },
+    { label: 'Disputas', href: '/disputes', icon: 'shield' },
     { label: 'Perfil profissional', href: '/professional/profile', icon: 'user' },
 ];
 

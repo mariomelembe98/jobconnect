@@ -18,6 +18,7 @@ use App\Models\ContractStatusLog;
 use App\Models\Conversation;
 use App\Models\Proposal as ProposalModel;
 use App\Models\ServiceRequest as ServiceRequestModel;
+use App\Support\ActivityLogService;
 use App\Support\ApiResponse;
 use App\Support\NotificationService;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +27,7 @@ use Illuminate\Support\Facades\DB;
 
 class ProposalController extends Controller
 {
-    public function store(StoreProposalRequest $request): JsonResponse
+    public function store(StoreProposalRequest $request, ActivityLogService $activityLogs): JsonResponse
     {
         $user = $request->user();
         $professionalProfile = $user?->professionalProfile;
@@ -66,7 +67,7 @@ class ProposalController extends Controller
             ],
         );
 
-        return ApiResponse::success(
+        $response = ApiResponse::success(
             data: [
                 'proposal' => new ProposalResource(
                     $proposal->fresh()->load(['serviceRequest.category', 'professionalProfile.user']),
@@ -75,6 +76,10 @@ class ProposalController extends Controller
             message: 'Proposta submetida com sucesso.',
             status: JsonResponse::HTTP_CREATED,
         );
+
+        $activityLogs->logProposalSubmitted($user, $proposal->fresh());
+
+        return $response;
     }
 
     public function show(Request $request, ProposalModel $proposal): JsonResponse
@@ -176,7 +181,7 @@ class ProposalController extends Controller
         );
     }
 
-    public function accept(Request $request, ProposalModel $proposal): JsonResponse
+    public function accept(Request $request, ProposalModel $proposal, ActivityLogService $activityLogs): JsonResponse
     {
         $serviceRequest = $proposal->serviceRequest()->first();
 
@@ -288,11 +293,11 @@ class ProposalController extends Controller
             }
         });
 
-        return ApiResponse::success(
+        $response = ApiResponse::success(
             data: [
                 'proposal' => new ProposalResource($proposal->refresh()->load(['serviceRequest.category', 'professionalProfile.user'])),
                 'contract' => new ContractResource(
-                    $contract->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'statusLogs.changedBy']),
+                    $contract->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'conversation', 'statusLogs.changedBy']),
                 ),
                 'conversation' => new ConversationResource(
                     $conversation->load(['serviceRequest.category', 'contract', 'client', 'professionalProfile.user'])->loadCount('messages'),
@@ -300,6 +305,10 @@ class ProposalController extends Controller
             ],
             message: 'Proposta aceite com sucesso.',
         );
+
+        $activityLogs->logProposalAccepted($request->user(), $contract->fresh(['conversation']));
+
+        return $response;
     }
 
     public function reject(Request $request, ProposalModel $proposal): JsonResponse

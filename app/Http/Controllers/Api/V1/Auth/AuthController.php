@@ -9,6 +9,7 @@ use App\Http\Requests\Api\V1\Auth\LoginRequest;
 use App\Http\Requests\Api\V1\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Support\ActivityLogService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,7 +42,7 @@ class AuthController extends Controller
         );
     }
 
-    public function login(LoginRequest $request): JsonResponse
+    public function login(LoginRequest $request, ActivityLogService $activityLogs): JsonResponse
     {
         $validated = $request->validated();
         $user = $this->findUserByIdentifier($validated['identifier']);
@@ -60,14 +61,22 @@ class AuthController extends Controller
             );
         }
 
-        return ApiResponse::success(
+        $response = ApiResponse::success(
             data: $this->tokenPayload($user),
             message: 'Sessão iniciada com sucesso.',
         );
+
+        $activityLogs->logUserLogin($user);
+
+        return $response;
     }
 
-    public function logout(Request $request): JsonResponse
+    public function logout(Request $request, ActivityLogService $activityLogs): JsonResponse
     {
+        if ($request->user()) {
+            $activityLogs->logUserLogout($request->user());
+        }
+
         $request->user()?->currentAccessToken()?->delete();
 
         return ApiResponse::success(

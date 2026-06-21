@@ -13,6 +13,7 @@ use App\Http\Resources\ContractResource;
 use App\Http\Resources\ContractStatusLogResource;
 use App\Models\Contract;
 use App\Models\ContractStatusLog;
+use App\Support\ActivityLogService;
 use App\Support\ApiResponse;
 use App\Support\NotificationService;
 use Illuminate\Http\JsonResponse;
@@ -29,7 +30,7 @@ class ContractController extends Controller
             return $this->forbiddenResponse('Sem permissão para ver contratos.');
         }
 
-        $query = Contract::query()->with(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user']);
+        $query = Contract::query()->with(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'conversation']);
 
         if ($user->hasAnyRole(['admin', 'super_admin']) !== true) {
             if ($user->hasRole('client') === true) {
@@ -63,7 +64,7 @@ class ContractController extends Controller
             return $this->forbiddenResponse('Sem permissão para ver este contrato.');
         }
 
-        $contract->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'statusLogs.changedBy']);
+        $contract->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'conversation', 'statusLogs.changedBy']);
 
         return ApiResponse::success(
             data: [
@@ -73,7 +74,7 @@ class ContractController extends Controller
         );
     }
 
-    public function complete(CompleteContractRequest $request, Contract $contract): JsonResponse
+    public function complete(CompleteContractRequest $request, Contract $contract, ActivityLogService $activityLogs): JsonResponse
     {
         if (! $this->isClientOwner($request, $contract)) {
             return $this->forbiddenResponse('Apenas o cliente proprietário pode concluir este contrato.');
@@ -117,15 +118,19 @@ class ContractController extends Controller
             );
         }
 
-        return ApiResponse::success(
+        $response = ApiResponse::success(
             data: [
-                'contract' => new ContractResource($contract->refresh()->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'statusLogs.changedBy'])),
+                'contract' => new ContractResource($contract->refresh()->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'conversation', 'statusLogs.changedBy'])),
             ],
             message: 'Contrato concluído com sucesso.',
         );
+
+        $activityLogs->logContractCompleted($request->user(), $contract->fresh(['conversation']));
+
+        return $response;
     }
 
-    public function cancel(CancelContractRequest $request, Contract $contract): JsonResponse
+    public function cancel(CancelContractRequest $request, Contract $contract, ActivityLogService $activityLogs): JsonResponse
     {
         if (! $this->canCancelContract($request, $contract)) {
             return $this->forbiddenResponse('Sem permissão para cancelar este contrato.');
@@ -173,12 +178,16 @@ class ContractController extends Controller
             );
         }
 
-        return ApiResponse::success(
+        $response = ApiResponse::success(
             data: [
-                'contract' => new ContractResource($contract->refresh()->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'statusLogs.changedBy'])),
+                'contract' => new ContractResource($contract->refresh()->load(['serviceRequest.category', 'proposal', 'client', 'professionalProfile.user', 'conversation', 'statusLogs.changedBy'])),
             ],
             message: 'Contrato cancelado com sucesso.',
         );
+
+        $activityLogs->logContractCancelled($request->user(), $contract->fresh(['conversation']));
+
+        return $response;
     }
 
     public function logs(Request $request, Contract $contract): JsonResponse

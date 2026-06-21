@@ -19,6 +19,7 @@ use App\Models\ProfessionalInvitation;
 use App\Models\ProfessionalProfile;
 use App\Models\ServiceRequest as ServiceRequestModel;
 use App\Models\ServiceRequestAttachment as ServiceRequestAttachmentModel;
+use App\Support\ActivityLogService;
 use App\Support\ApiResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -60,7 +61,7 @@ class ServiceRequestController extends Controller
 
     public function show(Request $request, ServiceRequestModel $serviceRequest): JsonResponse
     {
-        $serviceRequest->load(['client', 'category', 'attachments']);
+        $serviceRequest->load(['client', 'category', 'attachments'])->loadCount('proposals');
 
         if (! $this->canViewServiceRequest($request, $serviceRequest)) {
             return $this->notFoundResponse();
@@ -74,7 +75,7 @@ class ServiceRequestController extends Controller
         );
     }
 
-    public function store(StoreServiceRequestRequest $request): JsonResponse
+    public function store(StoreServiceRequestRequest $request, ActivityLogService $activityLogs): JsonResponse
     {
         $serviceRequest = ServiceRequestModel::create([
             ...$request->validated(),
@@ -82,15 +83,19 @@ class ServiceRequestController extends Controller
             'status' => ServiceRequestStatus::Published,
         ]);
 
-        return ApiResponse::success(
+        $response = ApiResponse::success(
             data: [
                 'service_request' => new ServiceRequestResource(
-                    $serviceRequest->refresh()->load(['client', 'category', 'attachments']),
+                    $serviceRequest->refresh()->load(['client', 'category', 'attachments'])->loadCount('proposals'),
                 ),
             ],
             message: 'Pedido de serviço criado com sucesso.',
             status: JsonResponse::HTTP_CREATED,
         );
+
+        $activityLogs->logServiceRequestCreated($request->user(), $serviceRequest->fresh());
+
+        return $response;
     }
 
     public function update(UpdateServiceRequestRequest $request, ServiceRequestModel $serviceRequest): JsonResponse
@@ -104,14 +109,14 @@ class ServiceRequestController extends Controller
         return ApiResponse::success(
             data: [
                 'service_request' => new ServiceRequestResource(
-                    $serviceRequest->refresh()->load(['client', 'category', 'attachments']),
+                    $serviceRequest->refresh()->load(['client', 'category', 'attachments'])->loadCount('proposals'),
                 ),
             ],
             message: 'Pedido de serviço actualizado com sucesso.',
         );
     }
 
-    public function cancel(CancelServiceRequestRequest $request, ServiceRequestModel $serviceRequest): JsonResponse
+    public function cancel(CancelServiceRequestRequest $request, ServiceRequestModel $serviceRequest, ActivityLogService $activityLogs): JsonResponse
     {
         if (in_array($serviceRequest->status?->value, [
             ServiceRequestStatus::Completed->value,
@@ -124,14 +129,18 @@ class ServiceRequestController extends Controller
             'status' => ServiceRequestStatus::Cancelled,
         ]);
 
-        return ApiResponse::success(
+        $response = ApiResponse::success(
             data: [
                 'service_request' => new ServiceRequestResource(
-                    $serviceRequest->refresh()->load(['client', 'category', 'attachments']),
+                    $serviceRequest->refresh()->load(['client', 'category', 'attachments'])->loadCount('proposals'),
                 ),
             ],
             message: 'Pedido de serviço cancelado com sucesso.',
         );
+
+        $activityLogs->logServiceRequestCancelled($request->user(), $serviceRequest->fresh());
+
+        return $response;
     }
 
     public function storeAttachments(

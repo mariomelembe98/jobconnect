@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { MiniIcon, StatCard } from '../../Components/Dashboard/StatCard';
@@ -23,17 +23,16 @@ interface AdminDashboardSummary {
 }
 
 const quickActions = [
-    { title: 'Ver utilizadores', description: 'Gerir contas e estados de acesso.', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8' },
-    { title: 'Ver profissionais', description: 'Consultar profissionais e verificações.', icon: 'M4 7h16v13H4zM8 7V4h8v3M12 12v4' },
-    { title: 'Ver denúncias', description: 'Analisar denúncias pendentes.', icon: 'M12 9v4M12 17h.01M10.3 4.3 2.7 18a2 2 0 0 0 1.75 3h15.1a2 2 0 0 0 1.75-3L13.7 4.3a2 2 0 0 0-3.4 0Z' },
-    { title: 'Ver disputas', description: 'Acompanhar casos em análise.', icon: 'M21 12a8 8 0 0 1-8 8H6l-4 2 1.5-5A9 9 0 1 1 21 12Z' },
+    { title: 'Ver utilizadores', description: 'Gerir contas e estados de acesso.', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8', href: '/admin/users' },
+    { title: 'Ver verificações', description: 'Consultar documentos e aprovações.', icon: 'M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z', href: '/admin/verifications' },
+    { title: 'Ver denúncias', description: 'Analisar denúncias pendentes.', icon: 'M12 9v4M12 17h.01M10.3 4.3 2.7 18a2 2 0 0 0 1.75 3h15.1a2 2 0 0 0 1.75-3L13.7 4.3a2 2 0 0 0-3.4 0Z', href: '/admin/reports' },
+    { title: 'Ver disputas', description: 'Acompanhar casos em análise.', icon: 'M21 12a8 8 0 0 1-8 8H6l-4 2 1.5-5A9 9 0 1 1 21 12Z', href: '/admin/disputes' },
 ];
 
 export default function AdminDashboard() {
     const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [notice, setNotice] = useState<string | null>(null);
     const [reloadKey, setReloadKey] = useState(0);
 
     const loadDashboard = useCallback(async (signal: AbortSignal) => {
@@ -128,21 +127,19 @@ export default function AdminDashboard() {
                         <SectionHeading id="admin-actions-title" title="Acesso rápido" description="Atalhos para as principais áreas administrativas." />
                         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                             {quickActions.map((action) => (
-                                <button
+                                <Link
                                     key={action.title}
-                                    type="button"
                                     className="flex w-full items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-card transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-elevated focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
-                                    onClick={() => setNotice(`${action.title} estará disponível quando a respectiva página administrativa for implementada.`)}
+                                    href={action.href}
                                 >
                                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><MiniIcon path={action.icon} /></span>
                                     <span className="min-w-0">
                                         <span className="block font-semibold text-slate-950">{action.title}</span>
                                         <span className="mt-1 block text-sm leading-5 text-slate-500">{action.description}</span>
                                     </span>
-                                </button>
+                                </Link>
                             ))}
                         </div>
-                        {notice ? <p className="mt-3 text-sm text-brand-700" role="status">{notice}</p> : null}
                     </section>
                 </div>
             ) : null}

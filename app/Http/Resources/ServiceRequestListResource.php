@@ -28,6 +28,7 @@ class ServiceRequestListResource extends JsonResource
             'status' => $this->status?->value,
             'visibility' => $this->visibility,
             'attachments_count' => $this->attachments_count ?? 0,
+            'proposals_count' => $this->proposals_count ?? 0,
             'client' => [
                 'id' => $this->whenLoaded('client', fn () => $this->client->id),
                 'name' => $this->whenLoaded('client', fn () => $this->client->name),

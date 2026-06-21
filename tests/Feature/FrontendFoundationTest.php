@@ -15,11 +15,14 @@ test('frontend foundation routes render their inertia pages', function (string $
     'login' => ['/login', 'Auth/Login'],
     'register' => ['/register', 'Auth/Register'],
     'my reviews' => ['/reviews/me', 'Reviews/Index'],
+    'reports' => ['/reports', 'Reports/Index'],
+    'disputes' => ['/disputes', 'Disputes/Index'],
     'notifications' => ['/notifications', 'Notifications/Index'],
     'conversations' => ['/conversations', 'Conversations/Index'],
     'contracts' => ['/contracts', 'Contracts/Index'],
     'professional directory' => ['/professionals', 'Professionals/Index'],
     'client dashboard' => ['/client', 'Client/Dashboard'],
+    'client service requests' => ['/client/service-requests', 'Client/ServiceRequests/Index'],
     'create service request' => ['/client/service-requests/create', 'Client/ServiceRequests/Create'],
     'professional dashboard' => ['/professional', 'Professional/Dashboard'],
     'professional proposals' => ['/professional/proposals', 'Professional/Proposals/Index'],
@@ -51,6 +54,15 @@ test('conversation detail route passes the conversation identifier', function ()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Conversations/Show')
             ->where('conversationId', 28)
+        );
+});
+
+test('dispute detail route passes the dispute identifier', function () {
+    $this->get('/disputes/57')
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Disputes/Show')
+            ->where('disputeId', 57)
         );
 });
 

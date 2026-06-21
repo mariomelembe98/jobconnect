@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\Admin\AdminSuspendUserRequest;
 use App\Http\Requests\Api\V1\Admin\AdminUpdateUserRequest;
 use App\Http\Resources\AdminUserResource;
 use App\Models\User;
+use App\Support\ActivityLogService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -48,20 +49,33 @@ class UserController extends Controller
         );
     }
 
-    public function update(AdminUpdateUserRequest $request, User $user): JsonResponse
+    public function update(AdminUpdateUserRequest $request, User $user, ActivityLogService $activityLogs): JsonResponse
     {
+        $previousStatus = $user->status;
         $user->update($request->validated());
 
         if ($user->status === UserStatus::Blocked) {
             $user->tokens()->delete();
         }
 
+        if ($previousStatus !== $user->status) {
+            if ($user->status === UserStatus::Suspended) {
+                $activityLogs->logUserSuspended($request->user(), $user);
+            }
+
+            if ($user->status === UserStatus::Blocked) {
+                $activityLogs->logUserBlocked($request->user(), $user);
+            }
+        }
+
         return $this->userResponse($user, 'Utilizador actualizado com sucesso.');
     }
 
-    public function suspend(AdminSuspendUserRequest $request, User $user): JsonResponse
+    public function suspend(AdminSuspendUserRequest $request, User $user, ActivityLogService $activityLogs): JsonResponse
     {
         $user->update(['status' => UserStatus::Suspended]);
+
+        $activityLogs->logUserSuspended($request->user(), $user, $request->validated('reason'));
 
         return $this->userResponse($user, 'Utilizador suspenso com sucesso.');
     }
@@ -73,10 +87,12 @@ class UserController extends Controller
         return $this->userResponse($user, 'Utilizador reactivado com sucesso.');
     }
 
-    public function block(User $user): JsonResponse
+    public function block(User $user, ActivityLogService $activityLogs): JsonResponse
     {
         $user->update(['status' => UserStatus::Blocked]);
         $user->tokens()->delete();
+
+        $activityLogs->logUserBlocked(request()->user(), $user);
 
         return $this->userResponse($user, 'Utilizador bloqueado com sucesso.');
     }

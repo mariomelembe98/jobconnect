@@ -10,7 +10,6 @@ import type { Contract, UserType } from '../../types';
 interface ContractCardProps {
     contract: Contract;
     viewerType?: UserType;
-    onOpenChat: () => void;
 }
 
 const statusVariants: Record<Contract['status'], BadgeProps['variant']> = {
@@ -20,7 +19,7 @@ const statusVariants: Record<Contract['status'], BadgeProps['variant']> = {
     disputed: 'amber',
 };
 
-export function ContractCard({ contract, viewerType, onOpenChat }: ContractCardProps) {
+export function ContractCard({ contract, viewerType }: ContractCardProps) {
     const participantName = viewerType === 'client'
         ? contract.professional_profile?.user?.name
         : contract.client?.name;
@@ -59,7 +58,18 @@ export function ContractCard({ contract, viewerType, onOpenChat }: ContractCardP
                     >
                         Ver detalhes
                     </Link>
-                    {contract.conversation?.id ? <Button variant="outline" size="sm" onClick={onOpenChat}>Abrir conversa</Button> : null}
+                    {contract.conversation?.id ? (
+                        <Link
+                            href={`/conversations/${contract.conversation.id}`}
+                            className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+                        >
+                            Abrir chat
+                        </Link>
+                    ) : (
+                        <Button variant="outline" size="sm" disabled title="O chat será disponibilizado quando existir uma conversa associada ao contrato.">
+                            Sem chat disponível
+                        </Button>
+                    )}
                 </div>
             </CardContent>
         </Card>

@@ -113,7 +113,6 @@ export default function ContractsIndex() {
                                         key={contract.id}
                                         contract={contract}
                                         viewerType={currentUser?.user_type}
-                                        onOpenChat={() => setNotice('A conversa deste contrato será disponibilizada no módulo de mensagens.')}
                                     />
                                 ))}
                             </div>

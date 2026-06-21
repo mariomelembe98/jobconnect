@@ -401,10 +401,29 @@ export interface Notification {
 
 export interface Report {
     id: number;
+    reporter_id: number;
+    reported_user_id: number | null;
+    service_request_id: number | null;
+    contract_id: number | null;
     report_type: 'user' | 'service_request' | 'contract' | 'message' | 'review';
     reason: string;
     description: string | null;
     status: 'pending' | 'reviewing' | 'resolved' | 'dismissed';
+    reviewed_by?: number | null;
+    reviewed_at?: string | null;
+    resolution_note?: string | null;
+    reporter?: {
+        id: number;
+        name: string;
+        avatar?: string | null;
+    } | null;
+    reported_user?: {
+        id: number;
+        name: string;
+        avatar?: string | null;
+    } | null;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface Dispute {
@@ -416,4 +435,104 @@ export interface Dispute {
     description: string | null;
     status: 'pending' | 'under_review' | 'resolved' | 'dismissed';
     resolution: 'favor_client' | 'favor_professional' | 'mutual_agreement' | 'dismissed' | null;
+    resolution_note?: string | null;
+    resolved_at?: string | null;
+    contract?: {
+        id: number;
+        status: ContractStatus;
+        client_id: number;
+        professional_profile_id: number;
+        amount?: string;
+        professional_amount?: string | null;
+        started_at?: string | null;
+        completed_at?: string | null;
+        client?: {
+            id: number;
+            name: string;
+            avatar: string | null;
+        };
+        professional_profile?: {
+            id: number;
+            headline: string | null;
+            user?: {
+                id: number;
+                name: string;
+                avatar: string | null;
+            };
+        };
+        service_request?: {
+            id: number;
+            title: string;
+            status: ServiceRequest['status'];
+            category?: Category | null;
+        };
+    } | null;
+    opener?: {
+        id: number;
+        name: string;
+        avatar?: string | null;
+    } | null;
+    assignee?: {
+        id: number;
+        name: string;
+        avatar?: string | null;
+    } | null;
+    evidence?: Array<{
+        id: number;
+        dispute_id?: number;
+        uploaded_by?: number;
+        file_name: string;
+        file_type: string | null;
+        file_size: number | null;
+        file_url: string | null;
+        description: string | null;
+        uploader?: {
+            id: number;
+            name: string;
+        } | null;
+        created_at: string;
+    }>;
+    messages?: Array<{
+        id: number;
+        dispute_id?: number;
+        message: string;
+        sender_id: number;
+        sender?: {
+            id: number;
+            name: string;
+            avatar: string | null;
+        } | null;
+        created_at: string;
+    }>;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface DisputeEvidence {
+    id: number;
+    dispute_id: number;
+    uploaded_by: number;
+    file_name: string;
+    file_type: string | null;
+    file_size: number | null;
+    file_url: string | null;
+    description: string | null;
+    uploader?: {
+        id: number;
+        name: string;
+    } | null;
+    created_at: string;
+}
+
+export interface DisputeMessage {
+    id: number;
+    dispute_id: number;
+    sender_id: number;
+    message: string;
+    sender?: {
+        id: number;
+        name: string;
+        avatar: string | null;
+    } | null;
+    created_at: string;
 }

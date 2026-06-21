@@ -7,11 +7,13 @@ import { useProtectedSession } from '../lib/auth';
 
 const navigation: NavigationItem[] = [
     { label: 'Visão geral', href: '/client', icon: 'home' },
-    { label: 'Meus pedidos', href: '#', icon: 'file' },
+    { label: 'Meus pedidos', href: '/client/service-requests', icon: 'file' },
     { label: 'Profissionais', href: '#', icon: 'search' },
     { label: 'Contratos', href: '/contracts', icon: 'briefcase' },
     { label: 'Mensagens', href: '/conversations', icon: 'chat' },
     { label: 'Notificações', href: '/notifications', icon: 'bell' },
+    { label: 'Denúncias', href: '/reports', icon: 'file' },
+    { label: 'Disputas', href: '/disputes', icon: 'shield' },
     { label: 'Perfil', href: '#', icon: 'user' },
 ];
 

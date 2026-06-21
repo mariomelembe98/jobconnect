@@ -1,7 +1,15 @@
 import { formatFileSize } from '../../lib/formatters';
 import type { ServiceRequestAttachment } from '../../types';
+import { Button } from '../ui/Button';
 
-export function ServiceRequestAttachments({ attachments }: { attachments: ServiceRequestAttachment[] }) {
+interface ServiceRequestAttachmentsProps {
+    attachments: ServiceRequestAttachment[];
+    canDelete?: boolean;
+    deletingAttachmentId?: number | null;
+    onDelete?: (attachment: ServiceRequestAttachment) => void;
+}
+
+export function ServiceRequestAttachments({ attachments, canDelete = false, deletingAttachmentId = null, onDelete }: ServiceRequestAttachmentsProps) {
     if (attachments.length === 0) {
         return <p className="mt-3 text-sm leading-6 text-slate-500">Este pedido não possui anexos.</p>;
     }
@@ -15,6 +23,18 @@ export function ServiceRequestAttachments({ attachments }: { attachments: Servic
                     </span>
                     <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-slate-800">{attachment.file_name}</p><p className="mt-0.5 text-xs text-slate-500">{formatFileSize(attachment.file_size)}</p></div>
                     {attachment.file_url ? <a href={attachment.file_url} target="_blank" rel="noreferrer" className="rounded-lg px-2 py-1 text-xs font-semibold text-brand-700 hover:bg-brand-50">Abrir</a> : null}
+                    {canDelete && onDelete ? (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="shrink-0 border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50"
+                            isLoading={deletingAttachmentId === attachment.id}
+                            onClick={() => onDelete(attachment)}
+                        >
+                            Eliminar
+                        </Button>
+                    ) : null}
                 </li>
             ))}
         </ul>

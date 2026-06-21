@@ -48,8 +48,8 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::prefix('auth')->group(function (): void {
-        Route::post('register', [AuthController::class, 'register']);
-        Route::post('login', [AuthController::class, 'login']);
+        Route::post('register', [AuthController::class, 'register'])->middleware('throttle:auth');
+        Route::post('login', [AuthController::class, 'login'])->middleware('throttle:auth');
 
         Route::middleware(['auth:sanctum', EnsureAuthenticatedUserIsActive::class])->group(function (): void {
             Route::post('logout', [AuthController::class, 'logout']);
@@ -68,17 +68,17 @@ Route::prefix('v1')->group(function (): void {
 
     Route::middleware(['auth:sanctum', EnsureAuthenticatedUserIsActive::class])->group(function (): void {
         Route::get('service-requests', [ServiceRequestController::class, 'index']);
-        Route::post('service-requests', [ServiceRequestController::class, 'store']);
+        Route::post('service-requests', [ServiceRequestController::class, 'store'])->middleware('throttle:user-writes');
         Route::patch('service-requests/{serviceRequest}', [ServiceRequestController::class, 'update']);
-        Route::post('service-requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel']);
-        Route::post('service-requests/{serviceRequest}/attachments', [ServiceRequestController::class, 'storeAttachments']);
+        Route::post('service-requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->middleware('throttle:user-writes');
+        Route::post('service-requests/{serviceRequest}/attachments', [ServiceRequestController::class, 'storeAttachments'])->middleware('throttle:uploads');
         Route::delete('service-requests/{serviceRequest}/attachments/{attachment}', [ServiceRequestController::class, 'destroyAttachment']);
         Route::post('service-requests/{serviceRequest}/invite', [ServiceRequestController::class, 'invite']);
         Route::get('client/service-requests', [ClientServiceRequestController::class, 'index']);
-        Route::post('proposals', [ProposalController::class, 'store']);
+        Route::post('proposals', [ProposalController::class, 'store'])->middleware('throttle:user-writes');
         Route::get('proposals/{proposal}', [ProposalController::class, 'show']);
         Route::post('proposals/{proposal}/withdraw', [ProposalController::class, 'withdraw']);
-        Route::post('proposals/{proposal}/accept', [ProposalController::class, 'accept']);
+        Route::post('proposals/{proposal}/accept', [ProposalController::class, 'accept'])->middleware('throttle:user-writes');
         Route::post('proposals/{proposal}/reject', [ProposalController::class, 'reject']);
         Route::get('professional/proposals', [ProposalController::class, 'professionalIndex']);
         Route::get('service-requests/{serviceRequest}/proposals', [ProposalController::class, 'serviceRequestIndex']);
@@ -86,9 +86,9 @@ Route::prefix('v1')->group(function (): void {
         Route::get('conversations/{conversation}', [ConversationController::class, 'show']);
         Route::post('conversations/{conversation}/archive', [ConversationController::class, 'archive']);
         Route::get('conversations/{conversation}/messages', [ConversationController::class, 'messages']);
-        Route::post('conversations/{conversation}/messages', [ConversationController::class, 'storeMessage']);
+        Route::post('conversations/{conversation}/messages', [ConversationController::class, 'storeMessage'])->middleware('throttle:messages');
         Route::post('conversations/{conversation}/read', [ConversationController::class, 'read']);
-        Route::post('messages/{message}/attachments', [MessageController::class, 'storeAttachment']);
+        Route::post('messages/{message}/attachments', [MessageController::class, 'storeAttachment'])->middleware('throttle:uploads');
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::get('notifications/{notification}', [NotificationController::class, 'show']);
         Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
@@ -97,23 +97,23 @@ Route::prefix('v1')->group(function (): void {
         Route::post('reviews', [ReviewController::class, 'store']);
         Route::get('reviews/me', [ReviewController::class, 'me']);
         Route::get('reviews/{review}', [ReviewController::class, 'show']);
-        Route::post('reports', [ReportController::class, 'store']);
+        Route::post('reports', [ReportController::class, 'store'])->middleware('throttle:user-writes');
         Route::get('reports/me', [ReportController::class, 'me']);
         Route::get('reports/{report}', [ReportController::class, 'show']);
-        Route::post('disputes', [DisputeController::class, 'store']);
+        Route::post('disputes', [DisputeController::class, 'store'])->middleware('throttle:user-writes');
         Route::get('disputes', [DisputeController::class, 'index']);
         Route::get('disputes/{dispute}', [DisputeController::class, 'show']);
-        Route::post('disputes/{dispute}/evidence', [DisputeController::class, 'storeEvidence']);
+        Route::post('disputes/{dispute}/evidence', [DisputeController::class, 'storeEvidence'])->middleware('throttle:uploads');
         Route::get('disputes/{dispute}/evidence', [DisputeController::class, 'evidence']);
         Route::get('disputes/{dispute}/messages', [DisputeController::class, 'messages']);
-        Route::post('disputes/{dispute}/messages', [DisputeController::class, 'storeMessage']);
+        Route::post('disputes/{dispute}/messages', [DisputeController::class, 'storeMessage'])->middleware('throttle:messages');
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::post('favorites', [FavoriteController::class, 'store']);
         Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
         Route::get('contracts', [ContractController::class, 'index']);
         Route::get('contracts/{contract}', [ContractController::class, 'show']);
-        Route::post('contracts/{contract}/complete', [ContractController::class, 'complete']);
-        Route::post('contracts/{contract}/cancel', [ContractController::class, 'cancel']);
+        Route::post('contracts/{contract}/complete', [ContractController::class, 'complete'])->middleware('throttle:user-writes');
+        Route::post('contracts/{contract}/cancel', [ContractController::class, 'cancel'])->middleware('throttle:user-writes');
         Route::get('contracts/{contract}/logs', [ContractController::class, 'logs']);
     });
 
@@ -162,11 +162,11 @@ Route::prefix('v1')->group(function (): void {
         Route::get('invitations', [ProfessionalInvitationController::class, 'index']);
         Route::post('invitations/{invitation}/decline', [ProfessionalInvitationController::class, 'decline']);
         Route::get('portfolio', [PortfolioController::class, 'index']);
-        Route::post('portfolio', [PortfolioController::class, 'store']);
+        Route::post('portfolio', [PortfolioController::class, 'store'])->middleware('throttle:uploads');
         Route::delete('portfolio/{portfolioItem}', [PortfolioController::class, 'destroy']);
         Route::get('verification', [DocumentController::class, 'verification']);
         Route::get('documents', [DocumentController::class, 'index']);
-        Route::post('documents', [DocumentController::class, 'store']);
+        Route::post('documents', [DocumentController::class, 'store'])->middleware('throttle:uploads');
         Route::get('documents/{document}/download', [DocumentController::class, 'download']);
         Route::get('documents/{document}', [DocumentController::class, 'show']);
     });

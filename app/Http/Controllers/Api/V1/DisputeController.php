@@ -13,6 +13,7 @@ use App\Http\Resources\DisputeMessageResource;
 use App\Http\Resources\DisputeResource;
 use App\Models\Contract;
 use App\Models\Dispute;
+use App\Support\ActivityLogService;
 use App\Support\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +24,7 @@ use LogicException;
 
 class DisputeController extends Controller
 {
-    public function store(StoreDisputeRequest $request, OpenDisputeAction $action): JsonResponse
+    public function store(StoreDisputeRequest $request, OpenDisputeAction $action, ActivityLogService $activityLogs): JsonResponse
     {
         $contract = Contract::query()->findOrFail($request->integer('contract_id'));
 
@@ -35,11 +36,15 @@ class DisputeController extends Controller
             return ApiResponse::error($exception->getMessage(), status: JsonResponse::HTTP_CONFLICT);
         }
 
-        return ApiResponse::success(
+        $response = ApiResponse::success(
             data: ['dispute' => new DisputeResource($this->loadDispute($dispute))],
             message: 'Disputa aberta com sucesso.',
             status: JsonResponse::HTTP_CREATED,
         );
+
+        $activityLogs->logDisputeCreated($request->user(), $dispute->fresh());
+
+        return $response;
     }
 
     public function index(Request $request): JsonResponse

@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
 import { CategoryCard } from '../../Components/ClientDashboard/CategoryCard';
@@ -35,6 +35,7 @@ const emptyDashboard: DashboardData = {
 
 const quickActions: Array<{ title: string; description: string; target?: string; icon: string }> = [
     { title: 'Publicar pedido', description: 'Descreva o serviço de que precisa.', target: '/client/service-requests/create', icon: 'M12 5v14M5 12h14' },
+    { title: 'Meus pedidos', description: 'Veja o histórico dos seus pedidos.', target: '/client/service-requests', icon: 'M6 3h9l3 3v15H6zM9 11h6M9 15h6' },
     { title: 'Explorar profissionais', description: 'Veja especialistas bem avaliados.', target: '#profissionais', icon: 'M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z' },
     { title: 'Ver contratos', description: 'Acompanhe os serviços contratados.', target: '/contracts', icon: 'M4 7h16v13H4zM8 7V4h8v3M4 12h16' },
     { title: 'Ver mensagens', description: 'Acompanhe as suas conversas.', target: '/conversations', icon: 'M21 12a8 8 0 0 1-8 8H6l-4 2 1.5-5A9 9 0 1 1 21 12Z' },
@@ -147,7 +148,7 @@ export default function ClientDashboard() {
 
                     <section aria-labelledby="quick-actions-title">
                         <SectionHeading id="quick-actions-title" title="Acesso rápido" description="Atalhos para as tarefas mais frequentes." />
-                        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
                             {quickActions.map((action) => (
                                 <QuickAction
                                     key={action.title}
@@ -181,7 +182,12 @@ export default function ClientDashboard() {
                     </section>
 
                     <section id="pedidos" aria-labelledby="requests-title" className="scroll-mt-24">
-                        <SectionHeading id="requests-title" title="Pedidos recentes" description="Acompanhe os seus pedidos de serviço mais recentes." />
+                        <div className="flex flex-wrap items-end justify-between gap-3">
+                            <SectionHeading id="requests-title" title="Pedidos recentes" description="Acompanhe os seus pedidos de serviço mais recentes." />
+                            <Link href="/client/service-requests" className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700">
+                                Ver todos
+                            </Link>
+                        </div>
                         {dashboard.serviceRequests.length > 0 ? (
                             <div className="mt-4 grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
                                 {dashboard.serviceRequests.map((serviceRequest) => <ServiceRequestCard key={serviceRequest.id} serviceRequest={serviceRequest} />)}
@@ -246,7 +252,7 @@ function QuickAction({ title, description, target, icon, onClick }: { title: str
     const classes = 'flex w-full items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-elevated focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100';
 
     if (target) {
-        return <a className={classes} href={target}>{content}</a>;
+        return target.startsWith('/') ? <Link className={classes} href={target}>{content}</Link> : <a className={classes} href={target}>{content}</a>;
     }
 
     return <button type="button" className={classes} onClick={onClick}>{content}</button>;

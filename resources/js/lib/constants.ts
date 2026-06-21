@@ -34,6 +34,32 @@ export const STATUS_LABELS: Record<string, string> = {
     withdrawn: 'Retirada',
 };
 
+export const REPORT_REASON_LABELS: Record<string, string> = {
+    fraud: 'Fraude',
+    abuse: 'Abuso',
+    fake_profile: 'Perfil falso',
+    inappropriate_content: 'Conteúdo impróprio',
+    service_not_delivered: 'Serviço não entregue',
+    spam: 'Spam',
+    other: 'Outro',
+};
+
+export const REPORT_TYPE_LABELS: Record<string, string> = {
+    user: 'Utilizador',
+    professional: 'Profissional',
+    service_request: 'Pedido de serviço',
+    contract: 'Contrato',
+    message: 'Mensagem',
+    review: 'Avaliação',
+};
+
+export const DISPUTE_RESOLUTION_LABELS: Record<string, string> = {
+    favor_client: 'A favor do cliente',
+    favor_professional: 'A favor do profissional',
+    mutual_agreement: 'Acordo mútuo',
+    dismissed: 'Descartada',
+};
+
 export const MOZAMBIQUE_PROVINCES = [
     'Maputo Cidade',
     'Maputo Província',

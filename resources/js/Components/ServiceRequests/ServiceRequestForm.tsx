@@ -33,6 +33,7 @@ interface ServiceRequestFormProps {
     isSubmitting: boolean;
     isUploading: boolean;
     isLoadingCities: boolean;
+    submitLabel?: string;
     onChange: (values: ServiceRequestFormValues) => void;
     onFilesChange: (files: File[]) => void;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -40,7 +41,7 @@ interface ServiceRequestFormProps {
 }
 
 export function ServiceRequestForm(props: ServiceRequestFormProps) {
-    const { values, files, categories, provinces, cities, errors, isSubmitting, isUploading, isLoadingCities, onChange, onFilesChange, onSubmit, onCancel } = props;
+    const { values, files, categories, provinces, cities, errors, isSubmitting, isUploading, isLoadingCities, submitLabel = 'Publicar pedido', onChange, onFilesChange, onSubmit, onCancel } = props;
     const disabled = isSubmitting || isUploading;
 
     function update<K extends keyof ServiceRequestFormValues>(field: K, value: ServiceRequestFormValues[K]): void {
@@ -89,7 +90,7 @@ export function ServiceRequestForm(props: ServiceRequestFormProps) {
 
             <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:justify-end">
                 <Button type="button" variant="outline" onClick={onCancel} disabled={disabled}>Cancelar</Button>
-                <Button type="submit" isLoading={disabled}>{isUploading ? 'A carregar anexos...' : 'Publicar pedido'}</Button>
+                <Button type="submit" isLoading={disabled}>{isUploading ? 'A carregar anexos...' : submitLabel}</Button>
             </div>
         </form>
     );

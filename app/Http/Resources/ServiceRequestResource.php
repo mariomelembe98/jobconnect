@@ -40,6 +40,7 @@ class ServiceRequestResource extends JsonResource
             'category' => new CategoryResource($this->whenLoaded('category')),
             'attachments' => ServiceRequestAttachmentResource::collection($this->whenLoaded('attachments')),
             'attachments_count' => $this->attachments_count ?? 0,
+            'proposals_count' => $this->proposals_count ?? 0,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

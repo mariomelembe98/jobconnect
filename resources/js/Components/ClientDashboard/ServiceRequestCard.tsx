@@ -49,17 +49,26 @@ export function ServiceRequestCard({ serviceRequest }: ServiceRequestCardProps) 
 
                 <p className="line-clamp-2 text-sm leading-6 text-slate-500">{serviceRequest.description}</p>
 
-                <div className="mt-auto grid gap-2 border-t border-slate-100 pt-4 text-sm sm:grid-cols-2">
+                <div className="mt-auto grid gap-2 border-t border-slate-100 pt-4 text-sm sm:grid-cols-3">
                     <div>
                         <p className="text-xs text-slate-500">Orçamento</p>
                         <p className="mt-0.5 font-semibold text-slate-900">{budgetLabel(serviceRequest)}</p>
                     </div>
-                    <div className="sm:text-right">
+                    <div className="sm:text-center">
                         <p className="text-xs text-slate-500">Publicado</p>
                         <p className="mt-0.5 font-medium text-slate-700">{formatDate(serviceRequest.created_at)}</p>
                     </div>
+                    <div className="sm:text-right">
+                        <p className="text-xs text-slate-500">Propostas</p>
+                        <p className="mt-0.5 font-semibold text-slate-900">{serviceRequest.proposals_count ?? 0}</p>
+                    </div>
                 </div>
-                {location ? <p className="text-xs text-slate-500">{location}</p> : null}
+                <div className="flex items-center justify-between gap-3">
+                    {location ? <p className="min-w-0 flex-1 text-xs text-slate-500">{location}</p> : <span className="flex-1" />}
+                    <Link href={`/client/service-requests/${serviceRequest.id}`} className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700">
+                        Ver detalhes
+                    </Link>
+                </div>
             </CardContent>
         </Card>
     );

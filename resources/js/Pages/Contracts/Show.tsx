@@ -1,10 +1,11 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 
 import { CancelContractModal } from '../../Components/Contracts/CancelContractModal';
 import { CompleteContractModal } from '../../Components/Contracts/CompleteContractModal';
 import { ContractDetailHeader } from '../../Components/Contracts/ContractDetailHeader';
 import { ContractTimeline } from '../../Components/Contracts/ContractTimeline';
+import { DisputeCreationModal } from '../../Components/Disputes/DisputeCreationModal';
 import { MiniIcon } from '../../Components/Dashboard/StatCard';
 import { ReviewFormModal } from '../../Components/Reviews/ReviewFormModal';
 import { Button } from '../../Components/ui/Button';
@@ -30,6 +31,7 @@ export default function ContractShow({ contractId }: { contractId: number }) {
     const [reviewOpen, setReviewOpen] = useState(false);
     const [isReviewing, setIsReviewing] = useState(false);
     const [reviewError, setReviewError] = useState<string | undefined>();
+    const [disputeOpen, setDisputeOpen] = useState(false);
     const [reloadKey, setReloadKey] = useState(0);
 
     const loadContract = useCallback(async (signal: AbortSignal) => {
@@ -120,13 +122,11 @@ export default function ContractShow({ contractId }: { contractId: number }) {
         }
     }
 
-    function showPlaceholder(message: string): void {
-        setFeedback({ type: 'success', message });
-    }
-
     const canComplete = currentUser?.user_type === 'client' && contract?.status === 'active';
     const canCancel = (currentUser?.user_type === 'client' || currentUser?.user_type === 'professional') && contract?.status === 'active';
     const canReview = (currentUser?.user_type === 'client' || currentUser?.user_type === 'professional') && contract?.status === 'completed';
+    const canOpenDispute = (currentUser?.user_type === 'client' || currentUser?.user_type === 'professional') && (contract?.status === 'active' || contract?.status === 'completed');
+    const chatHref = contract?.conversation?.id ? `/conversations/${contract.conversation.id}` : null;
     const reviewSubjectName = currentUser?.user_type === 'client'
         ? contract?.professional_profile?.user?.name ?? 'o profissional'
         : contract?.client?.name ?? 'o cliente';
@@ -200,7 +200,23 @@ export default function ContractShow({ contractId }: { contractId: number }) {
                                     <div className="mt-4 grid gap-3">
                                         {canComplete ? <Button onClick={() => setModal('complete')}>Concluir contrato</Button> : null}
                                         {canCancel ? <Button variant="danger" onClick={() => setModal('cancel')}>Cancelar contrato</Button> : null}
-                                        <Button variant="outline" onClick={() => showPlaceholder('A conversa do contrato será aberta quando o módulo de mensagens estiver disponível.')}>Abrir conversa</Button>
+                                        {canOpenDispute ? <Button variant="outline" onClick={() => setDisputeOpen(true)}>Abrir disputa</Button> : null}
+                                        {chatHref ? (
+                                            <Link
+                                                href={chatHref}
+                                                className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+                                            >
+                                                Abrir chat
+                                            </Link>
+                                        ) : (
+                                            <Button
+                                                variant="outline"
+                                                disabled
+                                                title="O chat será disponibilizado assim que houver uma conversa associada ao contrato."
+                                            >
+                                                Sem chat disponível
+                                            </Button>
+                                        )}
                                         {canReview ? <Button variant="secondary" onClick={() => { setReviewError(undefined); setReviewOpen(true); }}>Avaliar serviço</Button> : null}
                                         {contract.status === 'completed' ? <Button variant="ghost" onClick={() => router.visit('/reviews/me')}>Ver minhas avaliações</Button> : null}
                                     </div>
@@ -215,6 +231,16 @@ export default function ContractShow({ contractId }: { contractId: number }) {
             <CompleteContractModal open={modal === 'complete'} isLoading={isSubmitting} onConfirm={completeContract} onClose={() => setModal(null)} />
             <CancelContractModal open={modal === 'cancel'} reason={cancelReason} isLoading={isSubmitting} onReasonChange={setCancelReason} onConfirm={cancelContract} onClose={() => setModal(null)} />
             <ReviewFormModal open={reviewOpen} subjectName={reviewSubjectName} isLoading={isReviewing} error={reviewError} onSubmit={submitReview} onClose={() => setReviewOpen(false)} />
+            <DisputeCreationModal
+                open={disputeOpen}
+                defaultContractId={contract?.id ?? ''}
+                onCreated={(dispute) => {
+                    setDisputeOpen(false);
+                    setFeedback({ type: 'success', message: 'Disputa aberta com sucesso.' });
+                    router.visit(`/disputes/${dispute.id}`);
+                }}
+                onClose={() => setDisputeOpen(false)}
+            />
         </ContractsLayout>
     );
 }

@@ -27,6 +27,9 @@ class ContractResource extends JsonResource
             'started_at' => $this->started_at?->toISOString(),
             'completed_at' => $this->completed_at?->toISOString(),
             'cancelled_at' => $this->cancelled_at?->toISOString(),
+            'conversation' => $this->whenLoaded('conversation', fn (): ?array => $this->conversation ? [
+                'id' => $this->conversation->id,
+            ] : null),
             'service_request' => $this->whenLoaded('serviceRequest', function (): array {
                 return [
                     'id' => $this->serviceRequest->id,

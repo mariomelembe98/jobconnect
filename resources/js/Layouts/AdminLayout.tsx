@@ -7,13 +7,11 @@ import { useProtectedSession } from '../lib/auth';
 
 const navigation: NavigationItem[] = [
     { label: 'Painel', href: '/admin', icon: 'grid' },
+    { label: 'Utilizadores', href: '/admin/users', icon: 'users' },
+    { label: 'Verificações', href: '/admin/verifications', icon: 'shield' },
+    { label: 'Denúncias', href: '/admin/reports', icon: 'bell' },
+    { label: 'Disputas', href: '/admin/disputes', icon: 'chat' },
     { label: 'Notificações', href: '/notifications', icon: 'bell' },
-    { label: 'Utilizadores', href: '#', icon: 'users' },
-    { label: 'Categorias', href: '#', icon: 'file' },
-    { label: 'Competências', href: '#', icon: 'briefcase' },
-    { label: 'Verificações', href: '#', icon: 'shield', badge: '12' },
-    { label: 'Denúncias', href: '#', icon: 'bell', badge: '8' },
-    { label: 'Disputas', href: '#', icon: 'chat', badge: '4' },
 ];
 
 interface AdminLayoutProps {
