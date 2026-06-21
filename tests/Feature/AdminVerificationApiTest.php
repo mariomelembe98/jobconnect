@@ -14,7 +14,7 @@ use Spatie\Permission\Models\Role;
 uses(RefreshDatabase::class);
 
 test('admin can list verifications', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $admin = adminVerificationUser('admin');
     adminVerificationProfile(profileOverrides: [
         'verification_status' => VerificationStatus::Pending,
@@ -35,7 +35,7 @@ test('admin can list verifications', function () {
 });
 
 test('admin can filter by status', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $admin = adminVerificationUser('super_admin');
     $pending = adminVerificationProfile(profileOverrides: [
         'verification_status' => VerificationStatus::Pending,
@@ -55,7 +55,7 @@ test('admin can filter by status', function () {
 });
 
 test('admin can view verification details', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $admin = adminVerificationUser('admin');
     $profile = adminVerificationProfile(profileOverrides: [
         'verification_status' => VerificationStatus::UnderReview,
@@ -83,7 +83,7 @@ test('admin can view verification details', function () {
 });
 
 test('admin can approve professional verification', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $admin = adminVerificationUser('super_admin');
     $profile = adminVerificationProfile(profileOverrides: [
         'verification_status' => VerificationStatus::Pending,
@@ -120,7 +120,7 @@ test('admin can approve professional verification', function () {
 });
 
 test('admin can reject professional verification with reason', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $admin = adminVerificationUser('admin');
     $profile = adminVerificationProfile(profileOverrides: [
         'verification_status' => VerificationStatus::UnderReview,
@@ -155,7 +155,7 @@ test('admin can reject professional verification with reason', function () {
 });
 
 test('approval updates pending documents', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $admin = adminVerificationUser('admin');
     $profile = adminVerificationProfile(profileOverrides: [
         'verification_status' => VerificationStatus::Pending,
@@ -179,7 +179,7 @@ test('approval updates pending documents', function () {
 });
 
 test('rejection updates pending documents with rejection reason', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $admin = adminVerificationUser('super_admin');
     $profile = adminVerificationProfile(profileOverrides: [
         'verification_status' => VerificationStatus::UnderReview,
@@ -200,7 +200,7 @@ test('rejection updates pending documents with rejection reason', function () {
 });
 
 test('client and professional cannot access admin verification routes', function (string $role, array $routeData) {
-    Storage::fake('public');
+    Storage::fake('local');
     $profile = adminVerificationProfile();
     $user = $role === 'client' ? adminClientUser() : adminProfessionalUser();
     Sanctum::actingAs($user);
@@ -288,8 +288,8 @@ function adminVerificationProfile(array $userOverrides = [], array $profileOverr
  */
 function adminDocumentForProfile(ProfessionalProfile $profile, array $overrides = []): ProfessionalDocument
 {
-    $filePath = $overrides['file_path'] ?? "professional-documents/{$profile->id}/sample.pdf";
-    Storage::disk('public')->put($filePath, 'document content');
+    $filePath = $overrides['file_path'] ?? "verification-documents/{$profile->id}/sample.pdf";
+    Storage::disk('local')->put($filePath, 'document content');
 
     return ProfessionalDocument::create([
         'professional_profile_id' => $profile->id,

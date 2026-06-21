@@ -167,6 +167,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('verification', [DocumentController::class, 'verification']);
         Route::get('documents', [DocumentController::class, 'index']);
         Route::post('documents', [DocumentController::class, 'store']);
+        Route::get('documents/{document}/download', [DocumentController::class, 'download']);
         Route::get('documents/{document}', [DocumentController::class, 'show']);
     });
 });

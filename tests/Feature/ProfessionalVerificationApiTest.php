@@ -14,7 +14,7 @@ use Spatie\Permission\Models\Role;
 uses(RefreshDatabase::class);
 
 test('professional can view verification status', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $user = verificationProfessionalUser();
     $profile = ProfessionalProfile::factory()->for($user)->create([
         'verification_status' => VerificationStatus::Pending,
@@ -37,7 +37,7 @@ test('professional can view verification status', function () {
 });
 
 test('professional can upload document', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $user = verificationProfessionalUser();
     $profile = ProfessionalProfile::factory()->for($user)->create([
         'verification_status' => VerificationStatus::Rejected,
@@ -57,23 +57,130 @@ test('professional can upload document', function () {
         ->assertJsonPath('data.document.status', 'pending')
         ->assertJsonPath('data.document.file_name', 'bi.pdf');
 
-    $filePath = $response->json('data.document.file_path');
-
-    Storage::disk('public')->assertExists($filePath);
+    $document = ProfessionalDocument::query()
+        ->where('professional_profile_id', $profile->id)
+        ->firstOrFail();
 
     $this->assertDatabaseHas('professional_documents', [
         'professional_profile_id' => $profile->id,
         'document_type' => 'bi',
         'status' => 'pending',
         'file_name' => 'bi.pdf',
-        'file_path' => $filePath,
+        'file_path' => $document->file_path,
     ]);
 
     expect($profile->refresh()->verification_status)->toBe(VerificationStatus::Pending);
 });
 
-test('professional can list own documents', function () {
+test('uploaded verification document is stored on private disk and path', function () {
+    Storage::fake('local');
     Storage::fake('public');
+    $user = verificationProfessionalUser();
+    $profile = ProfessionalProfile::factory()->for($user)->create();
+    Sanctum::actingAs($user);
+
+    $this->postJson('/api/v1/professional/documents', [
+        'document_type' => 'bi',
+        'file' => UploadedFile::fake()->create('bi.pdf', 256, 'application/pdf'),
+    ])->assertCreated();
+
+    $document = ProfessionalDocument::query()
+        ->where('professional_profile_id', $profile->id)
+        ->firstOrFail();
+
+    expect($document->file_path)->toStartWith("verification-documents/{$profile->id}/");
+    Storage::disk('local')->assertExists($document->file_path);
+    Storage::disk('public')->assertMissing($document->file_path);
+});
+
+test('document resource does not expose public path or url', function () {
+    Storage::fake('local');
+    $user = verificationProfessionalUser();
+    $profile = ProfessionalProfile::factory()->for($user)->create();
+    $document = professionalDocumentForProfile($profile, ['document_type' => 'bi']);
+    Sanctum::actingAs($user);
+
+    $response = $this->getJson("/api/v1/professional/documents/{$document->id}");
+
+    $response->assertSuccessful();
+
+    $payload = $response->json('data.document');
+
+    expect($payload)->toMatchArray([
+        'id' => $document->id,
+        'document_type' => 'bi',
+        'file_name' => 'sample.pdf',
+        'file_type' => 'application/pdf',
+        'file_size' => 128,
+        'status' => 'pending',
+        'reviewed_at' => null,
+        'rejection_reason' => null,
+    ])
+        ->and($payload)->not->toHaveKey('professional_profile_id')
+        ->and($payload)->not->toHaveKey('file_path')
+        ->and($payload)->not->toHaveKey('file_url')
+        ->and($payload)->not->toHaveKey('reviewed_by')
+        ->and($payload)->not->toHaveKey('created_at')
+        ->and($payload)->not->toHaveKey('updated_at');
+});
+
+test('owner can download own document', function () {
+    Storage::fake('local');
+    $user = verificationProfessionalUser();
+    $profile = ProfessionalProfile::factory()->for($user)->create();
+    $document = professionalDocumentForProfile($profile, ['document_type' => 'bi']);
+    Sanctum::actingAs($user);
+
+    $this->get("/api/v1/professional/documents/{$document->id}/download")
+        ->assertOk()
+        ->assertDownload('sample.pdf');
+});
+
+test('admin can download professional document', function () {
+    Storage::fake('local');
+    $owner = verificationProfessionalUser();
+    $profile = ProfessionalProfile::factory()->for($owner)->create();
+    $document = professionalDocumentForProfile($profile, ['document_type' => 'bi']);
+
+    Sanctum::actingAs(verificationAdminUser('admin'));
+
+    $this->get("/api/v1/professional/documents/{$document->id}/download")
+        ->assertOk()
+        ->assertDownload('sample.pdf');
+});
+
+test('unrelated professional cannot download document', function () {
+    Storage::fake('local');
+    $owner = verificationProfessionalUser();
+    $profile = ProfessionalProfile::factory()->for($owner)->create();
+    $document = professionalDocumentForProfile($profile, ['document_type' => 'bi']);
+
+    $other = verificationProfessionalUser();
+    ProfessionalProfile::factory()->for($other)->create();
+    Sanctum::actingAs($other);
+
+    $this->get("/api/v1/professional/documents/{$document->id}/download")
+        ->assertForbidden()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', 'Não pode descarregar este documento.');
+});
+
+test('client cannot download document', function () {
+    Storage::fake('local');
+    $owner = verificationProfessionalUser();
+    $profile = ProfessionalProfile::factory()->for($owner)->create();
+    $document = professionalDocumentForProfile($profile, ['document_type' => 'bi']);
+
+    Sanctum::actingAs(verificationClientUser());
+
+    $this->get("/api/v1/professional/documents/{$document->id}/download")
+        ->assertForbidden()
+        ->assertJsonPath('success', false)
+        ->assertJsonPath('message', 'Não pode descarregar este documento.');
+});
+
+test('professional can list own documents', function () {
+    Storage::fake('local');
     $user = verificationProfessionalUser();
     $profile = ProfessionalProfile::factory()->for($user)->create();
     professionalDocumentForProfile($profile, ['document_type' => 'bi']);
@@ -90,7 +197,7 @@ test('professional can list own documents', function () {
 });
 
 test('professional can view own document', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $user = verificationProfessionalUser();
     $profile = ProfessionalProfile::factory()->for($user)->create();
     $document = professionalDocumentForProfile($profile, ['document_type' => 'certificate']);
@@ -107,7 +214,7 @@ test('professional can view own document', function () {
 });
 
 test('professional cannot view another professional document', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $owner = verificationProfessionalUser();
     $ownerProfile = ProfessionalProfile::factory()->for($owner)->create();
     $document = professionalDocumentForProfile($ownerProfile);
@@ -125,7 +232,7 @@ test('professional cannot view another professional document', function () {
 });
 
 test('professional without profile cannot upload', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $user = verificationProfessionalUser();
     Sanctum::actingAs($user);
 
@@ -141,7 +248,7 @@ test('professional without profile cannot upload', function () {
 });
 
 test('client cannot access verification routes', function (string $method, string $uri, array $payload) {
-    Storage::fake('public');
+    Storage::fake('local');
     $owner = verificationProfessionalUser();
     $profile = ProfessionalProfile::factory()->for($owner)->create();
     $document = professionalDocumentForProfile($profile);
@@ -188,13 +295,25 @@ function verificationClientUser(): User
     return $user;
 }
 
+function verificationAdminUser(string $role = 'admin'): User
+{
+    Role::findOrCreate($role);
+
+    $user = User::factory()->admin()->create([
+        'user_type' => UserType::Admin,
+    ]);
+    $user->assignRole($role);
+
+    return $user;
+}
+
 /**
  * @param  array<string, mixed>  $overrides
  */
 function professionalDocumentForProfile(ProfessionalProfile $profile, array $overrides = []): ProfessionalDocument
 {
-    $filePath = $overrides['file_path'] ?? "professional-documents/{$profile->id}/sample.pdf";
-    Storage::disk('public')->put($filePath, 'document content');
+    $filePath = $overrides['file_path'] ?? "verification-documents/{$profile->id}/sample.pdf";
+    Storage::disk('local')->put($filePath, 'document content');
 
     return ProfessionalDocument::create([
         'professional_profile_id' => $profile->id,

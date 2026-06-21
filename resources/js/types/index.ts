@@ -110,19 +110,13 @@ export interface PortfolioItem {
 
 export interface ProfessionalDocument {
     id: number;
-    professional_profile_id: number;
     document_type: string;
-    file_path: string;
-    file_url: string | null;
     file_name: string;
     file_type: string | null;
     file_size: number | null;
     status: 'pending' | 'approved' | 'rejected' | 'expired';
-    reviewed_by: number | null;
     reviewed_at: string | null;
     rejection_reason: string | null;
-    created_at: string;
-    updated_at?: string;
 }
 
 export interface ProfessionalVerification {

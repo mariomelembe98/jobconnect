@@ -12,10 +12,14 @@ use App\Models\ProfessionalProfile;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DocumentController extends Controller
 {
     private const REQUIRED_DOCUMENTS = ['bi', 'nuit'];
+
+    private const STORAGE_DISK = 'local';
 
     public function verification(Request $request): JsonResponse
     {
@@ -79,7 +83,7 @@ class DocumentController extends Controller
         }
 
         $file = $request->file('file');
-        $filePath = $file->store("professional-documents/{$profile->id}", 'public');
+        $filePath = $file->store("verification-documents/{$profile->id}", self::STORAGE_DISK);
 
         $document = $profile->documents()->create([
             'document_type' => $request->validated('document_type'),
@@ -130,6 +134,37 @@ class DocumentController extends Controller
             ],
             message: 'Documento carregado com sucesso.',
         );
+    }
+
+    public function download(Request $request, ProfessionalDocument $document): StreamedResponse|JsonResponse
+    {
+        if (! $this->canAccessDocument($request, $document)) {
+            return ApiResponse::error(
+                message: 'Não pode descarregar este documento.',
+                status: JsonResponse::HTTP_FORBIDDEN,
+            );
+        }
+
+        if (! $document->file_path || ! Storage::disk(self::STORAGE_DISK)->exists($document->file_path)) {
+            return ApiResponse::error(
+                message: 'Ficheiro não encontrado.',
+                status: JsonResponse::HTTP_NOT_FOUND,
+            );
+        }
+
+        return Storage::disk(self::STORAGE_DISK)->download($document->file_path, $document->file_name);
+    }
+
+    private function canAccessDocument(Request $request, ProfessionalDocument $document): bool
+    {
+        $user = $request->user();
+
+        if ($user?->hasAnyRole(['admin', 'super_admin']) === true) {
+            return true;
+        }
+
+        return $this->isProfessional($request)
+            && $this->profileFor($request)?->id === $document->professional_profile_id;
     }
 
     private function isProfessional(Request $request): bool

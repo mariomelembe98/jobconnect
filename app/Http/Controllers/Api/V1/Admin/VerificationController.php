@@ -24,7 +24,7 @@ class VerificationController extends Controller
         }
 
         $query = ProfessionalProfile::query()
-            ->with(['user', 'documents.reviewer']);
+            ->with(['user', 'documents']);
 
         $status = $request->string('status')->toString();
 
@@ -54,7 +54,7 @@ class VerificationController extends Controller
             return $this->adminOnlyResponse();
         }
 
-        $professionalProfile->load(['user', 'documents.reviewer']);
+        $professionalProfile->load(['user', 'documents']);
 
         return ApiResponse::success(
             data: [
@@ -99,7 +99,7 @@ class VerificationController extends Controller
         return ApiResponse::success(
             data: [
                 'verification' => new AdminVerificationResource(
-                    $professionalProfile->refresh()->load(['user', 'documents.reviewer']),
+                    $professionalProfile->refresh()->load(['user', 'documents']),
                 ),
             ],
             message: 'Verificação aprovada com sucesso.',
@@ -143,7 +143,7 @@ class VerificationController extends Controller
         return ApiResponse::success(
             data: [
                 'verification' => new AdminVerificationResource(
-                    $professionalProfile->refresh()->load(['user', 'documents.reviewer']),
+                    $professionalProfile->refresh()->load(['user', 'documents']),
                 ),
             ],
             message: 'Verificação rejeitada com sucesso.',
