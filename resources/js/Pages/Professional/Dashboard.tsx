@@ -54,7 +54,7 @@ type ContractsData = PaginatedData<'contracts', Contract>;
 type NotificationsData = PaginatedData<'notifications', Notification>;
 
 const quickActions: Array<{ title: string; description: string; target?: string; icon: string }> = [
-    { title: 'Actualizar perfil', description: 'Mantenha os seus dados profissionais completos.', icon: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z' },
+    { title: 'Actualizar perfil', description: 'Mantenha os seus dados profissionais completos.', target: '/professional/profile', icon: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z' },
     { title: 'Ver trabalhos', description: 'Explore novos pedidos compatíveis consigo.', target: '/professional/jobs', icon: 'M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z' },
     { title: 'Ver propostas', description: 'Acompanhe as propostas que enviou.', target: '/professional/proposals', icon: 'M6 3h12v18H6zM9 8h6M9 12h6M9 16h4' },
     { title: 'Ver contratos', description: 'Consulte os contratos actualmente activos.', target: '/contracts', icon: 'M4 7h16v13H4zM8 7V4h8v3M4 12h16' },
@@ -162,7 +162,7 @@ export default function ProfessionalDashboard() {
                 <MissingProfileState
                     name={currentUser?.name ?? 'Profissional'}
                     notice={notice}
-                    onCreate={() => showComingSoon('A criação do perfil profissional será disponibilizada em breve.')}
+                    onCreate={() => router.visit('/professional/onboarding', { replace: true })}
                 />
             ) : null}
 

@@ -27,6 +27,8 @@ Route::get('/client/service-requests/{serviceRequest}', fn (string $serviceReque
     'serviceRequestId' => (int) $serviceRequest,
 ]))->whereNumber('serviceRequest')->name('client.service_requests.show');
 Route::get('/professional', fn () => Inertia::render('Professional/Dashboard'))->name('professional.dashboard');
+Route::get('/professional/onboarding', fn () => Inertia::render('Professional/Onboarding'))->name('professional.onboarding');
+Route::get('/professional/profile', fn () => Inertia::render('Professional/Profile'))->name('professional.profile');
 Route::get('/professional/proposals', fn () => Inertia::render('Professional/Proposals/Index'))->name('professional.proposals.index');
 Route::get('/professional/jobs', fn () => Inertia::render('Professional/Jobs/Index'))->name('professional.jobs.index');
 Route::get('/professional/jobs/{serviceRequest}', fn (string $serviceRequest) => Inertia::render('Professional/Jobs/Show', [

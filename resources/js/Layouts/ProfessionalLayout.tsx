@@ -12,7 +12,7 @@ const navigation: NavigationItem[] = [
     { label: 'Contratos', href: '/contracts', icon: 'briefcase' },
     { label: 'Mensagens', href: '/conversations', icon: 'chat' },
     { label: 'Notificações', href: '/notifications', icon: 'bell' },
-    { label: 'Perfil profissional', href: '#', icon: 'user' },
+    { label: 'Perfil profissional', href: '/professional/profile', icon: 'user' },
 ];
 
 interface ProfessionalLayoutProps {

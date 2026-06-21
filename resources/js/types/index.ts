@@ -96,11 +96,42 @@ export interface ProfessionalProfile {
 
 export interface PortfolioItem {
     id: number;
+    professional_profile_id?: number;
     title: string;
     description: string | null;
     file_path?: string;
     file_name?: string;
     file_type?: string | null;
+    file_url?: string | null;
+    file_size?: number | null;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface ProfessionalDocument {
+    id: number;
+    professional_profile_id: number;
+    document_type: string;
+    file_path: string;
+    file_url: string | null;
+    file_name: string;
+    file_type: string | null;
+    file_size: number | null;
+    status: 'pending' | 'approved' | 'rejected' | 'expired';
+    reviewed_by: number | null;
+    reviewed_at: string | null;
+    rejection_reason: string | null;
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface ProfessionalVerification {
+    verification_status: ProfessionalProfile['verification_status'];
+    documents_submitted: number;
+    documents_required: number;
+    required_documents: string[];
+    missing_required_documents: string[];
+    documents: ProfessionalDocument[];
 }
 
 export interface Review {
