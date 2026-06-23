@@ -1,54 +1,51 @@
-# ProConnect — Release Candidate 1 Checklist
+# ProConnect Release Candidate 1 Checklist
 
 ## 1. Current readiness
 
 ### Backend
 
-- Auth endpoints hardened for suspended and blocked users.
-- Active-user middleware is applied to protected API groups.
-- Rate limiting is in place for high-risk endpoints.
-- Activity logging exists for critical writes and moderation actions.
-- Private verification document storage and secure download are implemented.
-- Core marketplace APIs are available for clients, professionals, and admins.
+- Auth hardening is complete for suspended and blocked users.
+- Active-user middleware protects authenticated API groups.
+- Rate limiting is applied to high-risk write paths.
+- Activity logs are stored for critical writes and moderation actions.
+- Verification documents are stored privately and downloaded through a secure route.
 
 ### Frontend
 
-- Core marketplace dashboards are implemented.
-- Client request management flows are implemented.
-- Professional onboarding, profile management, jobs, and proposals are implemented.
-- Contracts, chat, notifications, reports, disputes, and reviews screens exist.
-- Admin moderation screens exist for users, verifications, reports, disputes, and activity logs.
+- Public landing page is available.
+- Public Help, Terms, and Privacy pages are available.
+- Account settings page is available.
+- Client, professional, contract, chat, notifications, reviews, reports, and disputes screens are available.
 - Route-level code splitting is in place.
 
 ### Admin
 
-- Admin dashboard exists.
-- User moderation is available.
-- Verification moderation is available.
-- Report moderation is available.
-- Dispute moderation is available.
-- Activity log auditing UI is available.
+- Dashboard, users, verifications, reports, disputes, and activity logs screens are available.
+- Admin observability is now available through activity logs.
 
 ### Security
 
 - Suspended and blocked users cannot log in.
-- Existing sessions for suspended or blocked users are rejected on protected APIs.
-- Verification documents are stored privately.
-- Secure document download is enforced by ownership and admin access.
+- Protected API routes reject suspended or blocked sessions.
+- Verification documents are not publicly exposed.
 - High-risk endpoints are rate limited.
-- Admin-only routes are protected.
+- Sensitive writes are audited.
 
 ### Tests
 
+- Current test count: 282.
+- Current assertion count: 1344.
 - Backend feature coverage is broad across auth, journeys, moderation, audit logging, and rate limiting.
-- Frontend build and type-checking are currently part of the verification flow.
-- Playwright E2E harness exists for critical marketplace journeys.
 
 ### Performance
 
-- Route-level code splitting reduces initial bundle size.
-- Shared vendor code is split into smaller chunks.
-- The initial app bundle is below the 300 KB target.
+- Bundle splitting has been resolved.
+- Initial application bundle remains below the 300 KB target.
+- Shared route bundles are loaded lazily on demand.
+
+## Verdict
+
+RC1 is ready for tagging after the remaining operational tasks below are completed.
 
 ## 2. RC1 completed items
 
@@ -63,6 +60,12 @@
 - Contract-to-chat handoff
 - Bundle optimization
 - Playwright E2E harness
+- Public landing page
+- Account settings page
+- Help page
+- Terms page
+- Privacy page
+- Activity Logs admin UI
 
 ## 3. Remaining before RC1 tag
 
@@ -81,16 +84,17 @@
 
 - HttpOnly cookie auth migration.
 - Realtime chat and notifications.
-- Landing page.
+- Landing page refinement and conversion copy.
 - Payment placeholders or M-Pesa/eMola roadmap.
 - Monitoring and alerts.
-- Legal pages.
+- Legal pages final review.
 
 ## 5. Manual QA checklist
 
 ### Client journey
 
 - Register and log in.
+- Open the landing page and Help pages.
 - Create a service request.
 - View request details.
 - Receive proposals.

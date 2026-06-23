@@ -14,6 +14,7 @@ const navigation: NavigationItem[] = [
     { label: 'Notificações', href: '/notifications', icon: 'bell' },
     { label: 'Denúncias', href: '/reports', icon: 'file' },
     { label: 'Disputas', href: '/disputes', icon: 'shield' },
+    { label: 'Definições', href: '/settings', icon: 'user' },
     { label: 'Perfil profissional', href: '/professional/profile', icon: 'user' },
 ];
 

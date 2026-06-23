@@ -42,6 +42,7 @@ export interface User {
     status: UserStatus;
     province?: string | null;
     city?: string | null;
+    address?: string | null;
 }
 
 export interface Category {
